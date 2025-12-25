@@ -31,7 +31,7 @@ const Login = () => {
     try {
       setLoading(true);
       await login(email, password);
-      toast.success("Login successful ✅");
+      toast.success("Login successful ");
       navigate(from, { replace: true });
     } catch (err) {
       toast.error(
