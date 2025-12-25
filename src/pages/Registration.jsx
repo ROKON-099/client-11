@@ -40,26 +40,51 @@ const Registration = () => {
     const upazila = form.upazila.value;
     const avatarFile = form.avatar.files[0];
 
+    // Password check
     if (password !== confirmPassword) {
       return toast.error("Passwords do not match");
+    }
+
+    // Image validation (LOGIC ONLY)
+    if (!avatarFile) {
+      return toast.error("Profile image is required");
+    }
+
+    if (!avatarFile.type.startsWith("image/")) {
+      return toast.error("Only image files are allowed");
+    }
+
+    if (avatarFile.size > 2 * 1024 * 1024) {
+      return toast.error("Image must be under 2MB");
     }
 
     try {
       setLoading(true);
 
-      const formData = new FormData();
-      formData.append("image", avatarFile);
+      // Upload image to ImgBB
+      let avatar;
+      try {
+        const formData = new FormData();
+        formData.append("image", avatarFile);
 
-      const imgRes = await axios.post(
-        `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_KEY}`,
-        formData
-      );
+        const imgRes = await axios.post(
+          `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_KEY}`,
+          formData
+        );
 
-      const avatar = imgRes.data.data.url;
-      const districtName = districts.find(d => d.id == districtId)?.name;
+        avatar = imgRes.data.data.url;
+      } catch {
+        setLoading(false);
+        return toast.error("Image upload failed");
+      }
 
+      const districtName =
+        districts.find(d => String(d.id) === String(districtId))?.name || "";
+
+      // Create auth user
       await createUser(email, password);
 
+      // Save user to DB
       const userInfo = {
         name,
         email,
@@ -75,8 +100,8 @@ const Registration = () => {
 
       toast.success("Registration successful 🎉");
       navigate("/dashboard");
-    } catch {
-      toast.error("Registration failed");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -93,24 +118,21 @@ const Registration = () => {
         </h2>
 
         <form onSubmit={handleRegister} className="space-y-4" data-aos="fade-right">
-          {/* Name */}
           <input
             name="name"
             placeholder="Your Name"
             required
-            className="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-400"
+            className="w-full px-4 py-2.5 border rounded-xl"
           />
 
-          {/* Email */}
           <input
             name="email"
             type="email"
             placeholder="Email"
             required
-            className="w-full px-4 py-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-400"
+            className="w-full px-4 py-2.5 border rounded-xl"
           />
 
-          {/* Avatar */}
           <label className="w-full px-4 py-2.5 border rounded-xl cursor-pointer text-gray-400 text-sm flex items-center">
             Click to upload profile image
             <input
@@ -122,7 +144,6 @@ const Registration = () => {
             />
           </label>
 
-          {/* Blood Group */}
           <select
             name="bloodGroup"
             required
@@ -137,7 +158,6 @@ const Registration = () => {
             ))}
           </select>
 
-          {/* District */}
           <select
             name="district"
             required
@@ -146,14 +166,13 @@ const Registration = () => {
             onChange={(e) => setSelectedDistrictId(e.target.value)}
           >
             <option value="" disabled hidden>
-              Select District (e.g. Sirajganj)
+              Select District
             </option>
             {districts.map(d => (
               <option key={d.id} value={d.id}>{d.name}</option>
             ))}
           </select>
 
-          {/* Upazila */}
           <select
             name="upazila"
             required
@@ -161,7 +180,7 @@ const Registration = () => {
             defaultValue=""
           >
             <option value="" disabled hidden>
-              Select Upazila (e.g. Sirajganj Sadar)
+              Select Upazila
             </option>
             {upazilas
               .filter(u => String(u.district_id) === String(selectedDistrictId))
@@ -170,7 +189,6 @@ const Registration = () => {
               ))}
           </select>
 
-          {/* Password */}
           <input
             name="password"
             type="password"
@@ -179,7 +197,6 @@ const Registration = () => {
             className="w-full px-4 py-2.5 border rounded-xl"
           />
 
-          {/* Confirm Password */}
           <input
             name="confirmPassword"
             type="password"
@@ -188,7 +205,6 @@ const Registration = () => {
             className="w-full px-4 py-2.5 border rounded-xl"
           />
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
