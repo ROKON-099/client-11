@@ -5,27 +5,51 @@ const Profile = () => {
   const [user, setUser] = useState({});
   const [isEditing, setIsEditing] = useState(false);
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
+    if (!token) return;
+
     axios
-      .get(`/users/user@gmail.com`, {
-        headers: {
-          authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      .then(res => setUser(res.data));
-  }, []);
+      .get(
+        `${import.meta.env.VITE_API_URL}/users/${user?.email || "me"}`,
+        {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then(res => setUser(res.data))
+      .catch(() => console.log("Failed to load profile"));
+  }, [token]);
 
   const handleChange = e => {
-    setUser({ ...user, [e.target.name]: e.target.value });
+    setUser(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSave = () => {
-    axios.patch(`/users/${user.email}`, user, {
-      headers: {
-        authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      const updatedData = {
+        name: user.name,
+        district: user.district,
+        upazila: user.upazila,
+        bloodGroup: user.bloodGroup,
+      };
+
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/users/${user.email}`,
+        updatedData,
+        {
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setIsEditing(false);
+    } catch {
+      console.log("Profile update failed");
+    }
   };
 
   return (
@@ -91,6 +115,7 @@ const Profile = () => {
           disabled={!isEditing}
           className="input"
         >
+          <option value="">Select Blood Group</option>
           <option>A+</option>
           <option>A-</option>
           <option>B+</option>
