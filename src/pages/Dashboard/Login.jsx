@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../firebase/firebase.config";
+import { auth, googleProvider } from "../../firebase/firebase.config";
 import toast from "react-hot-toast";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-import useAuth from "../hooks/useAuth";
+import useAuth from "../../hooks/useAuth";
 import LoadingSpinner from "../components/LoadingSpinner";
 
 const Login = () => {

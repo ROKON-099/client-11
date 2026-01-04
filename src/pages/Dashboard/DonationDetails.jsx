@@ -1,6 +1,6 @@
 import React from 'react'
 
-const VolunteerRoute = () => {
+const DonationDetails = () => {
   return (
     <div>
       
@@ -8,4 +8,4 @@ const VolunteerRoute = () => {
   )
 }
 
-export default VolunteerRoute
+export default DonationDetails

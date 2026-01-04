@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import axiosSecure from "../../hooks/axiosSecure";
-import useAuth from "../../hooks/useAuth";
+import axiosSecure from "../../../hooks/axiosSecure";
+import useAuth from "../../../hooks/useAuth";
 
 const MyDonation = () => {
   const { user } = useAuth();
