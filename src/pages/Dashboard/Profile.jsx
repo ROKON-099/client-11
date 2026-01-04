@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axiosSecure from "../../hooks/axiosSecure";
 import useAuth from "../../hooks/useAuth";
+import LoadingSpinner from "../../components/comon/LoadingSpinner";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -10,23 +11,36 @@ const Profile = () => {
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
   const [selectedDistrictId, setSelectedDistrictId] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   /* ---------------- Fetch Data ---------------- */
   useEffect(() => {
-    if (user?.email) {
-      axiosSecure.get(`/users/${user.email}`).then(res => {
-        setProfile(res.data);
-        setSelectedDistrictId(res.data?.districtId || "");
-      });
-    }
+    const fetchData = async () => {
+      try {
+        if (user?.email) {
+          const res = await axiosSecure.get(`/users/${user.email}`);
+          setProfile(res.data);
+          setSelectedDistrictId(res.data?.districtId || "");
+        }
 
-    fetch("/District.json")
-      .then(res => res.json())
-      .then(data => setDistricts(data));
+        const [districtRes, upazilaRes] = await Promise.all([
+          fetch("/District.json"),
+          fetch("/Upzila.json")
+        ]);
 
-    fetch("/Upzila.json")
-      .then(res => res.json())
-      .then(data => setUpazilas(data));
+        const districtsData = await districtRes.json();
+        const upazilasData = await upazilaRes.json();
+
+        setDistricts(districtsData);
+        setUpazilas(upazilasData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, [user]);
 
   /* ---------------- Handlers ---------------- */

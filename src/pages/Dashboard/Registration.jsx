@@ -6,6 +6,8 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import useAuth from "../../hooks/useAuth";
 
+const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
+
 const Registration = () => {
   const { createUser, updateUserProfile } = useAuth();
   const navigate = useNavigate();
@@ -19,12 +21,12 @@ const Registration = () => {
     AOS.init({ duration: 1000, once: true });
 
     fetch("/District.json")
-      .then(res => res.json())
-      .then(data => setDistricts(data));
+      .then((res) => res.json())
+      .then((data) => setDistricts(data));
 
     fetch("/Upzila.json")
-      .then(res => res.json())
-      .then(data => setUpazilas(data));
+      .then((res) => res.json())
+      .then((data) => setUpazilas(data));
   }, []);
 
   const handleRegister = async (e) => {
@@ -35,9 +37,10 @@ const Registration = () => {
     const email = form.email.value;
     const password = form.password.value;
     const confirmPassword = form.confirmPassword.value;
-    const photo = form.photo.value;
+    const imageFile = form.avatar.files[0];
     const bloodGroup = form.bloodGroup.value;
-    const district = form.district.value;
+    const districtId = Number(form.district.value);
+    const districtName = districts.find((d) => d.id === districtId)?.name;
     const upazila = form.upazila.value;
 
     if (password !== confirmPassword) {
@@ -47,24 +50,40 @@ const Registration = () => {
 
     try {
       setLoading(true);
-      const { user } = await createUser(email, password);
-      await updateUserProfile(name, photo);
 
+      // Upload avatar to imageBB
+      const imageFormData = new FormData();
+      imageFormData.append("image", imageFile);
+
+      const imageRes = await axios.post(
+        `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
+        imageFormData
+      );
+
+      const avatarUrl = imageRes.data.data.display_url;
+
+      // Create auth user
+      const { user } = await createUser(email, password);
+
+      // Update profile
+      await updateUserProfile(name, avatarUrl);
+
+      // Save user to database
       await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
         name,
         email,
-        photo,
+        avatar: avatarUrl,
         bloodGroup,
-        district,
+        district: districtName,
         upazila,
         role: "donor",
         status: "active",
       });
 
-      toast.success("Registered successfully!");
+      toast.success("Registration successful!");
       navigate("/");
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -72,30 +91,57 @@ const Registration = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full" data-aos="fade-up">
+      <div
+        className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full"
+        data-aos="fade-up"
+      >
         <h2 className="text-2xl font-bold text-center mb-8">Register</h2>
 
         <form onSubmit={handleRegister} className="space-y-4">
-          <input name="name" type="text" placeholder="Name" required className="w-full px-4 py-3 border rounded-lg" />
-          <input name="email" type="email" placeholder="Email" required className="w-full px-4 py-3 border rounded-lg" />
-          <input name="photo" type="text" placeholder="Photo URL" required className="w-full px-4 py-3 border rounded-lg" />
+          <input
+            name="name"
+            type="text"
+            placeholder="Name"
+            required
+            className="w-full px-4 py-3 border rounded-lg"
+          />
 
-          <select name="bloodGroup" required className="w-full px-4 py-3 border rounded-lg">
+          <input
+            name="email"
+            type="email"
+            placeholder="Email"
+            required
+            className="w-full px-4 py-3 border rounded-lg"
+          />
+
+          <input
+            name="avatar"
+            type="file"
+            accept="image/*"
+            required
+            className="w-full px-4 py-3 border rounded-lg"
+          />
+
+          <select
+            name="bloodGroup"
+            required
+            className="w-full px-4 py-3 border rounded-lg"
+          >
             <option value="">Blood Group</option>
             <option>A+</option>
             <option>A-</option>
             <option>B+</option>
             <option>B-</option>
-            <option>O+</option>
-            <option>O-</option>
             <option>AB+</option>
             <option>AB-</option>
+            <option>O+</option>
+            <option>O-</option>
           </select>
 
           <select
             name="district"
-            onChange={(e) => setSelectedDistrictId(Number(e.target.value))}
             required
+            onChange={(e) => setSelectedDistrictId(Number(e.target.value))}
             className="w-full px-4 py-3 border rounded-lg"
           >
             <option value="">District</option>
@@ -106,7 +152,11 @@ const Registration = () => {
             ))}
           </select>
 
-          <select name="upazila" required className="w-full px-4 py-3 border rounded-lg">
+          <select
+            name="upazila"
+            required
+            className="w-full px-4 py-3 border rounded-lg"
+          >
             <option value="">Upazila</option>
             {upazilas
               .filter((u) => u.district_id === selectedDistrictId)
@@ -117,10 +167,27 @@ const Registration = () => {
               ))}
           </select>
 
-          <input name="password" type="password" placeholder="Password" required className="w-full px-4 py-3 border rounded-lg" />
-          <input name="confirmPassword" type="password" placeholder="Confirm Password" required className="w-full px-4 py-3 border rounded-lg" />
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            required
+            className="w-full px-4 py-3 border rounded-lg"
+          />
 
-          <button type="submit" disabled={loading} className="w-full bg-red-600 text-white py-3 rounded-lg">
+          <input
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm Password"
+            required
+            className="w-full px-4 py-3 border rounded-lg"
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-red-600 text-white py-3 rounded-lg"
+          >
             {loading ? "Registering..." : "Register"}
           </button>
         </form>

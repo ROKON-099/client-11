@@ -1,8 +1,13 @@
 import { NavLink } from "react-router";
 import useAuth from "../../hooks/useAuth";
+import LoadingSpinner from "../comon/LoadingSpinner";
 
 const Sidebar = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
   return (
     <aside className="w-64 min-h-screen bg-gradient-to-b from-red-50 via-white to-white border-r shadow-lg hidden md:flex flex-col">
@@ -13,7 +18,7 @@ const Sidebar = () => {
           Blood-Donation
         </h1>
         <p className="text-sm text-gray-500 mt-1">
-          Welcome back 
+          Welcome back
         </p>
       </div>
 
@@ -34,15 +39,19 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Menu */}
+      {/* Navigation */}
       <nav className="flex-1 px-4 mt-4 space-y-2">
+        <NavItem to="/dashboard" label="Dashboard" />
         <NavItem to="/dashboard/profile" label="My Profile" />
-        <NavItem to="/dashboard/home" label="Dashboard" />
+        <NavItem
+          to="/dashboard/my-donation-requests"
+          label="My Donation Requests"
+        />
+        <NavItem
+          to="/dashboard/create-donation-request"
+          label="Create Donation Request"
+        />
       </nav>
-
-      {/* Footer */}
-      
-      
     </aside>
   );
 };

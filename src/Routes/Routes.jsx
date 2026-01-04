@@ -9,7 +9,7 @@ import Home from "../pages/Dashboard/Home";
 import Login from "../pages/Dashboard/Login";
 import Registration from "../pages/Dashboard/Registration";
 import Search from "../pages/Dashboard/Search";
-import DonationRequests from "../pages/Dashboard/DonationRequest";
+import DonationRequests from "../pages/Dashboard/DonationRequests";
 import DonationDetails from "../pages/Dashboard/DonationDetails";
 import ErrorPage from "../pages/Dashboard/ErrorPage";
 
@@ -25,8 +25,7 @@ import Funding from "../pages/Dashboard/Admin/Funding";
 // donor pages
 import DonorHome from "../pages/Dashboard/Donor/DonorHome";
 import CreateDonationRequest from "../pages/Dashboard/Donor/CreateDonationRequest";
-import MyDonationRequests from "../pages/Dashboard/Donor/MyDonation";
-
+import MyDonationRequests from "../pages/Dashboard/Donor/MyDonationRequests";
 
 // volunteer pages
 import VolunteerHome from "../pages/Dashboard/Volunteer/VolunteerHome";
@@ -38,31 +37,17 @@ import AdminRoute from "./AdminRoute";
 import VolunteerRoute from "./VolunteerRoute";
 
 const router = createBrowserRouter([
+  // ================= MAIN ROUTES =================
   {
     path: "/",
     element: <MainLayout />,
     errorElement: <ErrorPage />,
     children: [
-      {
-        index: true,
-        element: <Home />,
-      },
-      {
-        path: "login",
-        element: <Login />,
-      },
-      {
-        path: "register",
-        element: <Registration />,
-      },
-      {
-        path: "search",
-        element: <Search />,
-      },
-      {
-        path: "donation-requests",
-        element: <DonationRequests />,
-      },
+      { index: true, element: <Home /> },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Registration /> },
+      { path: "search", element: <Search /> },
+      { path: "donation-requests", element: <DonationRequests /> },
       {
         path: "donation-details/:id",
         element: (
@@ -74,7 +59,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  // DASHBOARD ROUTES
+  // ================= DASHBOARD ROUTES =================
   {
     path: "/dashboard",
     element: (
@@ -83,11 +68,11 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
     children: [
-      // common
-      {
-        path: "profile",
-        element: <Profile />,
-      },
+      // ✅ DEFAULT DASHBOARD
+      { index: true, element: <DonorHome /> },
+
+      // COMMON
+      { path: "profile", element: <Profile /> },
 
       // ADMIN
       {
@@ -123,11 +108,8 @@ const router = createBrowserRouter([
         ),
       },
 
-      // DONOR
-      {
-        path: "donor",
-        element: <DonorHome />,
-      },
+      // DONOR (original)
+      { path: "donor", element: <DonorHome /> },
       {
         path: "donor/create-donation-request",
         element: <CreateDonationRequest />,
@@ -136,7 +118,16 @@ const router = createBrowserRouter([
         path: "donor/my-donation-requests",
         element: <MyDonationRequests />,
       },
-      
+
+      // ✅ ADDED (for sidebar compatibility)
+      {
+        path: "create-donation-request",
+        element: <CreateDonationRequest />,
+      },
+      {
+        path: "my-donation-requests",
+        element: <MyDonationRequests />,
+      },
 
       // VOLUNTEER
       {
