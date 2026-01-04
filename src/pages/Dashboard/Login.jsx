@@ -8,7 +8,7 @@ import "aos/dist/aos.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 import useAuth from "../../hooks/useAuth";
-import LoadingSpinner from "../components/LoadingSpinner";
+import LoadingSpinner from "../../components/comon/LoadingSpinner";
 
 const Login = () => {
   const { login, loading: authLoading } = useAuth();

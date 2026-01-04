@@ -1,8 +1,8 @@
 import { Link, NavLink } from "react-router";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import useAuth from "../hooks/useAuth";
-import logo from "../assets/Logo.png";
+import useAuth from "../../hooks/useAuth";
+import logo from "../../assets/Logo.png";
 
 const Navbar = () => {
   const { user, logOut } = useAuth();

@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { motion } from "framer-motion";
-import bannerImg from "../assets/banner.png";
+import bannerImg from "../../assets/banner.png";
 
 const Home = () => {
   return (
