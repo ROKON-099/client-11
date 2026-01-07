@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
@@ -7,9 +7,11 @@ import logo from "../../assets/Logo.png";
 const Navbar = () => {
   const { user, logOut } = useAuth();
   const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     await logOut();
+    navigate("/login");
   };
 
   const navLinkClass = ({ isActive }) =>
@@ -37,7 +39,7 @@ const Navbar = () => {
             </NavLink>
 
             {user && (
-              <NavLink to="/funding" className={navLinkClass}>
+              <NavLink to="/dashboard/funding" className={navLinkClass}>
                 Funding
               </NavLink>
             )}
@@ -52,7 +54,7 @@ const Navbar = () => {
             ) : (
               <div className="relative group">
                 <img
-                  src={user.photoURL}
+                  src={user.photoURL || "https://i.ibb.co/4pDNDk1/avatar.png"}
                   alt="user"
                   className="w-10 h-10 rounded-full cursor-pointer border"
                 />
@@ -76,7 +78,7 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Hamburger */}
+          {/* Mobile Menu Button */}
           <button
             className="md:hidden text-gray-700"
             onClick={() => setOpen(!open)}
@@ -99,7 +101,7 @@ const Navbar = () => {
 
           {user && (
             <NavLink
-              to="/funding"
+              to="/dashboard/funding"
               className={navLinkClass}
               onClick={() => setOpen(false)}
             >

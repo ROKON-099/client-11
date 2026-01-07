@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router";
+import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 import AOS from "aos";
@@ -7,6 +7,7 @@ import "aos/dist/aos.css";
 import useAuth from "../../hooks/useAuth";
 
 const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Registration = () => {
   const { createUser, updateUserProfile } = useAuth();
@@ -22,68 +23,81 @@ const Registration = () => {
 
     fetch("/District.json")
       .then((res) => res.json())
-      .then((data) => setDistricts(data));
+      .then(setDistricts);
 
     fetch("/Upzila.json")
       .then((res) => res.json())
-      .then((data) => setUpazilas(data));
+      .then(setUpazilas);
   }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
     const form = e.target;
 
-    const name = form.name.value;
-    const email = form.email.value;
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
     const password = form.password.value;
     const confirmPassword = form.confirmPassword.value;
     const imageFile = form.avatar.files[0];
     const bloodGroup = form.bloodGroup.value;
     const districtId = Number(form.district.value);
-    const districtName = districts.find((d) => d.id === districtId)?.name;
+    const districtName =
+      districts.find((d) => d.id === districtId)?.name;
     const upazila = form.upazila.value;
 
+    /* ---- Validation ---- */
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
+      return toast.error("Passwords do not match");
+    }
+
+    if (password.length < 6) {
+      return toast.error("Password must be at least 6 characters");
+    }
+
+    if (!districtName) {
+      return toast.error("Please select a district");
     }
 
     try {
       setLoading(true);
 
-      // Upload avatar to imageBB
-      const imageFormData = new FormData();
-      imageFormData.append("image", imageFile);
+      /* ---- Image Upload (optional) ---- */
+      let avatarUrl =
+        "https://i.ibb.co/2kRZb5P/avatar.png";
 
-      const imageRes = await axios.post(
-        `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
-        imageFormData
-      );
+      if (imageFile) {
+        const imageFormData = new FormData();
+        imageFormData.append("image", imageFile);
 
-      const avatarUrl = imageRes.data.data.display_url;
+        const imageRes = await axios.post(
+          `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
+          imageFormData
+        );
 
-      // Create auth user
-      const { user } = await createUser(email, password);
+        avatarUrl = imageRes.data.data.display_url;
+      }
 
-      // Update profile
+      /* ---- Firebase Auth ---- */
+      await createUser(email, password);
       await updateUserProfile(name, avatarUrl);
 
-      // Save user to database
-      await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
+      /* ---- Save User in DB ---- */
+      await axios.post(`${API_URL}/users`, {
         name,
-        email,
+        email: email.toLowerCase(),
         avatar: avatarUrl,
         bloodGroup,
         district: districtName,
         upazila,
-        role: "donor",
-        status: "active",
       });
 
-      toast.success("Registration successful!");
+      toast.success("Registration successful 🎉");
       navigate("/");
     } catch (error) {
-      toast.error(error.message || "Registration failed");
+      toast.error(
+        error?.response?.data?.message ||
+          "Registration failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -95,7 +109,9 @@ const Registration = () => {
         className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full"
         data-aos="fade-up"
       >
-        <h2 className="text-2xl font-bold text-center mb-8">Register</h2>
+        <h2 className="text-2xl font-bold text-center mb-8">
+          Register
+        </h2>
 
         <form onSubmit={handleRegister} className="space-y-4">
           <input
@@ -118,7 +134,6 @@ const Registration = () => {
             name="avatar"
             type="file"
             accept="image/*"
-            required
             className="w-full px-4 py-3 border rounded-lg"
           />
 
@@ -128,20 +143,17 @@ const Registration = () => {
             className="w-full px-4 py-3 border rounded-lg"
           >
             <option value="">Blood Group</option>
-            <option>A+</option>
-            <option>A-</option>
-            <option>B+</option>
-            <option>B-</option>
-            <option>AB+</option>
-            <option>AB-</option>
-            <option>O+</option>
-            <option>O-</option>
+            {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg=>(
+              <option key={bg}>{bg}</option>
+            ))}
           </select>
 
           <select
             name="district"
             required
-            onChange={(e) => setSelectedDistrictId(Number(e.target.value))}
+            onChange={(e) =>
+              setSelectedDistrictId(Number(e.target.value))
+            }
             className="w-full px-4 py-3 border rounded-lg"
           >
             <option value="">District</option>
@@ -159,7 +171,10 @@ const Registration = () => {
           >
             <option value="">Upazila</option>
             {upazilas
-              .filter((u) => u.district_id === selectedDistrictId)
+              .filter(
+                (u) =>
+                  u.district_id === selectedDistrictId
+              )
               .map((u) => (
                 <option key={u.id} value={u.name}>
                   {u.name}
@@ -186,7 +201,7 @@ const Registration = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-red-600 text-white py-3 rounded-lg"
+            className="w-full bg-red-600 text-white py-3 rounded-lg disabled:opacity-70"
           >
             {loading ? "Registering..." : "Register"}
           </button>
@@ -194,7 +209,10 @@ const Registration = () => {
 
         <p className="mt-6 text-center">
           Already have an account?{" "}
-          <Link to="/login" className="text-red-600 font-semibold">
+          <Link
+            to="/login"
+            className="text-red-600 font-semibold"
+          >
             Login
           </Link>
         </p>

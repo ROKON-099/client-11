@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import bannerImg from "../../assets/banner.png";
 
@@ -18,7 +18,9 @@ const Home = () => {
             >
               <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
                 Donate Blood, <br />
-                <span className="text-red-600">Save a Life Today</span>
+                <span className="text-red-600">
+                  Save a Life Today
+                </span>
               </h1>
 
               <p className="text-gray-600 mb-8 max-w-lg">
@@ -43,18 +45,17 @@ const Home = () => {
               </div>
             </motion.div>
 
-            {/* Right Image (Blended) */}
+            {/* Right Image */}
             <motion.div
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
               className="relative flex justify-center"
             >
-              <div className="absolute inset-0 bg-gradient-to-l from-white/80 to-transparent rounded-lg"></div>
               <img
                 src={bannerImg}
                 alt="Blood Donation"
-                className="w-full max-w-md rounded-lg mix-blend-multiply"
+                className="w-full max-w-md rounded-lg"
               />
             </motion.div>
 
@@ -62,10 +63,10 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ================= Featured Section ================= */}
+      {/* ================= Why Donate ================= */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+          <h2 className="text-3xl font-bold text-center mb-12">
             Why Donate Blood?
           </h2>
 
@@ -95,24 +96,26 @@ const Home = () => {
                 <h3 className="text-lg font-semibold text-red-600 mb-2">
                   {item.title}
                 </h3>
-                <p className="text-gray-600 text-sm">{item.desc}</p>
+                <p className="text-gray-600 text-sm">
+                  {item.desc}
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ================= Our Impact Section ================= */}
+      {/* ================= Impact (Static – Allowed) ================= */}
       <section className="py-20 bg-red-50">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-12">
             Our <span className="text-red-600">Impact</span>
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
             {[
               { value: "5,000+", label: "Registered Donors" },
-              { value: "1,200+", label: "Blood Requests Fulfilled" },
+              { value: "1,200+", label: "Requests Fulfilled" },
               { value: "300+", label: "Hospitals Connected" },
               { value: "8,000+", label: "Lives Impacted" },
             ].map((item, index) => (
@@ -127,44 +130,33 @@ const Home = () => {
                 <h3 className="text-4xl font-bold text-red-600 mb-2">
                   {item.value}
                 </h3>
-                <p className="text-gray-600">{item.label}</p>
+                <p className="text-gray-600">
+                  {item.label}
+                </p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ================= Contact Section ================= */}
+      {/* ================= Contact ================= */}
       <section className="bg-gray-50 py-16">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-10 text-gray-900">
+          <h2 className="text-3xl font-bold text-center mb-10">
             Contact Us
           </h2>
 
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Contact Info */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-            >
+            <div>
               <h3 className="text-lg font-semibold text-red-600 mb-4">
                 Get in Touch
               </h3>
               <p className="text-gray-600 mb-2">📍 Dhaka, Bangladesh</p>
               <p className="text-gray-600 mb-2">📞 +880 1234-567890</p>
               <p className="text-gray-600">✉️ support@blooddonation.com</p>
-            </motion.div>
+            </div>
 
-            {/* Contact Form */}
-            <motion.form
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              viewport={{ once: true }}
-              className="bg-white p-6 rounded-lg border space-y-4"
-            >
+            <form className="bg-white p-6 rounded-lg border space-y-4">
               <input
                 type="text"
                 placeholder="Your Name"
@@ -179,14 +171,14 @@ const Home = () => {
                 rows="4"
                 placeholder="Your Message"
                 className="w-full border px-4 py-2 rounded"
-              ></textarea>
+              />
               <button
                 type="submit"
                 className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition"
               >
                 Send Message
               </button>
-            </motion.form>
+            </form>
           </div>
         </div>
       </section>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axiosSecure from "../../hooks/axiosSecure";
 import useAuth from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
+import toast from "react-hot-toast";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -10,7 +11,7 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
-  const [selectedDistrictId, setSelectedDistrictId] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
   /* ---------------- Fetch Data ---------------- */
@@ -18,23 +19,20 @@ const Profile = () => {
     const fetchData = async () => {
       try {
         if (user?.email) {
-          const res = await axiosSecure.get(`/users/${user.email}`);
+          const res = await axiosSecure.get(`/users/${user.email.toLowerCase()}`);
           setProfile(res.data);
-          setSelectedDistrictId(res.data?.districtId || "");
+          setSelectedDistrict(res.data?.district || "");
         }
 
         const [districtRes, upazilaRes] = await Promise.all([
           fetch("/District.json"),
-          fetch("/Upzila.json")
+          fetch("/Upzila.json"),
         ]);
 
-        const districtsData = await districtRes.json();
-        const upazilasData = await upazilaRes.json();
-
-        setDistricts(districtsData);
-        setUpazilas(upazilasData);
+        setDistricts(await districtRes.json());
+        setUpazilas(await upazilaRes.json());
       } catch (error) {
-        console.error("Error fetching data:", error);
+        toast.error("Failed to load profile data");
       } finally {
         setIsLoading(false);
       }
@@ -44,20 +42,35 @@ const Profile = () => {
   }, [user]);
 
   /* ---------------- Handlers ---------------- */
-  const handleChange = e => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
-    setProfile(prev => ({ ...prev, [name]: value }));
+    setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSave = async () => {
-    await axiosSecure.patch(`/users/${user.email}`, profile);
-    setIsEditing(false);
+    try {
+      const updateData = {
+        name: profile.name,
+        bloodGroup: profile.bloodGroup,
+        district: selectedDistrict,
+        upazila: profile.upazila,
+        avatar: profile.avatar,
+      };
+
+      await axiosSecure.patch(`/users/${user.email}`, updateData);
+      toast.success("Profile updated successfully");
+      setIsEditing(false);
+    } catch {
+      toast.error("Failed to update profile");
+    }
   };
+
+  if (isLoading) return <LoadingSpinner />;
 
   /* ---------------- UI ---------------- */
   return (
     <div className="max-w-5xl mx-auto">
-      
+
       {/* Header */}
       <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl p-6 text-white shadow-lg mb-6">
         <h1 className="text-3xl font-bold">My Profile</h1>
@@ -68,12 +81,16 @@ const Profile = () => {
 
       {/* Card */}
       <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
-        
-        {/* Top Actions */}
+
+        {/* Top */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <img
-              src={profile.photo || user?.photoURL || "https://i.ibb.co/2kRZb5P/avatar.png"}
+              src={
+                profile.avatar ||
+                user?.photoURL ||
+                "https://i.ibb.co/2kRZb5P/avatar.png"
+              }
               alt="profile"
               className="w-20 h-20 rounded-full object-cover ring-4 ring-red-100"
             />
@@ -106,7 +123,6 @@ const Profile = () => {
 
         {/* Form */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          
           <Input
             label="Full Name"
             name="name"
@@ -117,7 +133,6 @@ const Profile = () => {
 
           <Input
             label="Email"
-            name="email"
             value={profile.email || ""}
             disabled
           />
@@ -127,21 +142,16 @@ const Profile = () => {
             <label className="text-sm text-gray-600">District</label>
             <select
               disabled={!isEditing}
-              value={selectedDistrictId}
-              onChange={e => {
-                const id = Number(e.target.value);
-                setSelectedDistrictId(id);
-                setProfile(prev => ({
-                  ...prev,
-                  districtId: id,
-                  upazila: ""
-                }));
+              value={selectedDistrict}
+              onChange={(e) => {
+                setSelectedDistrict(e.target.value);
+                setProfile((p) => ({ ...p, upazila: "" }));
               }}
               className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-300 disabled:bg-gray-100"
             >
               <option value="">Select District</option>
-              {districts.map(d => (
-                <option key={d.id} value={d.id}>
+              {districts.map((d) => (
+                <option key={d.id} value={d.name}>
                   {d.name}
                 </option>
               ))}
@@ -153,15 +163,15 @@ const Profile = () => {
             <label className="text-sm text-gray-600">Upazila</label>
             <select
               name="upazila"
-              disabled={!isEditing || !selectedDistrictId}
+              disabled={!isEditing || !selectedDistrict}
               value={profile.upazila || ""}
               onChange={handleChange}
               className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-300 disabled:bg-gray-100"
             >
               <option value="">Select Upazila</option>
               {upazilas
-                .filter(u => u.district_id === selectedDistrictId)
-                .map(u => (
+                .filter((u) => u.district === selectedDistrict)
+                .map((u) => (
                   <option key={u.id} value={u.name}>
                     {u.name}
                   </option>
@@ -180,10 +190,9 @@ const Profile = () => {
               className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-300 disabled:bg-gray-100"
             >
               <option value="">Select</option>
-              <option>A+</option><option>A-</option>
-              <option>B+</option><option>B-</option>
-              <option>O+</option><option>O-</option>
-              <option>AB+</option><option>AB-</option>
+              {["A+","A-","B+","B-","O+","O-","AB+","AB-"].map(bg=>(
+                <option key={bg}>{bg}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -195,7 +204,6 @@ const Profile = () => {
 export default Profile;
 
 /* ---------------- Reusable Input ---------------- */
-
 const Input = ({ label, ...props }) => (
   <div>
     <label className="text-sm text-gray-600">{label}</label>

@@ -80,7 +80,7 @@ const Footer = () => {
             </li>
             <li>
               <Link
-                to="/funding"
+                to="/dashboard/admin/funding"
                 className="text-gray-600 hover:text-red-600"
               >
                 Funding

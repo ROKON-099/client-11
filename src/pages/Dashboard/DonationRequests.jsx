@@ -1,13 +1,18 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import useAuth from "../../hooks/useAuth";
+import LoadingSpinner from "../../components/comon/LoadingSpinner";
 
 const DonationRequests = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const { data: requests = [], isLoading } = useQuery({
+  const {
+    data: requests = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["public-donation-requests"],
     queryFn: async () => {
       const res = await axios.get(
@@ -25,10 +30,12 @@ const DonationRequests = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading) return <LoadingSpinner />;
+
+  if (isError) {
     return (
-      <p className="text-center mt-10 text-gray-600">
-        Loading donation requests...
+      <p className="text-center mt-10 text-red-600">
+        Failed to load donation requests
       </p>
     );
   }

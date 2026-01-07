@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "../../firebase/firebase.config";
 import toast from "react-hot-toast";
@@ -11,7 +11,7 @@ import useAuth from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
 
 const Login = () => {
-  const { login, loading: authLoading } = useAuth();
+  const { signIn, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -30,8 +30,8 @@ const Login = () => {
 
     try {
       setLoading(true);
-      await login(email, password);
-      toast.success("Login successful ");
+      await signIn(email, password);
+      toast.success("Login successful 🎉");
       navigate(from, { replace: true });
     } catch (err) {
       toast.error(
@@ -48,10 +48,22 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Save user to DB if not exists
+      await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
+        name: user.displayName,
+        email: user.email.toLowerCase(),
+        avatar: user.photoURL || "https://i.ibb.co/2kRZb5P/avatar.png",
+        bloodGroup: "",
+        district: "",
+        upazila: "",
+      });
+
       toast.success("Logged in with Google 🎉");
       navigate(from, { replace: true });
-    } catch {
+    } catch (error) {
       toast.error("Google login failed");
     } finally {
       setLoading(false);

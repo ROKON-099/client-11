@@ -5,62 +5,68 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
-  GoogleAuthProvider,
-  signInWithPopup,
 } from "firebase/auth";
 import { auth } from "../firebase/firebase.config";
 import axios from "axios";
-import LoadingSpinner from "../components/comon/LoadingSpinner";
 
 export const AuthContext = createContext(null);
-const googleProvider = new GoogleAuthProvider();
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Create user with email/password
+  // Register
   const createUser = (email, password) => {
     setLoading(true);
     return createUserWithEmailAndPassword(auth, email, password);
   };
 
-  // Login with email/password
+  // Login
   const signIn = (email, password) => {
     setLoading(true);
     return signInWithEmailAndPassword(auth, email, password);
   };
 
-  // Google login
-  const googleSignIn = () => {
-    setLoading(true);
-    return signInWithPopup(auth, googleProvider);
-  };
-
   // Logout
-  const logOut = () => {
+  const logOut = async () => {
     setLoading(true);
-    return signOut(auth);
+    await signOut(auth);
+    localStorage.removeItem("token");
+    setUser(null);
+    setLoading(false);
   };
 
   // Update profile
   const updateUserProfile = (name, photoURL) => {
     return updateProfile(auth.currentUser, {
       displayName: name,
-      photoURL: photoURL,
+      photoURL,
     });
   };
 
-  // Observer
+  // Auth observer
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      if (currentUser) {
-        const res = await axios.post(`${import.meta.env.VITE_API_URL}/jwt`, { email: currentUser.email });
-        localStorage.setItem("token", res.data.token);
+
+      if (currentUser?.email) {
+        try {
+          const res = await axios.post(
+            `${import.meta.env.VITE_API_URL}/jwt`,
+            { email: currentUser.email.toLowerCase() }
+          );
+          localStorage.setItem("token", res.data.token);
+        } catch (error) {
+          console.error("JWT error", error);
+          // If JWT fails (user not in DB), log out the user
+          await signOut(auth);
+          localStorage.removeItem("token");
+          setUser(null);
+        }
       } else {
         localStorage.removeItem("token");
       }
+
       setLoading(false);
     });
 
@@ -72,14 +78,13 @@ const AuthProvider = ({ children }) => {
     loading,
     createUser,
     signIn,
-    googleSignIn,
     logOut,
     updateUserProfile,
   };
 
   return (
     <AuthContext.Provider value={authInfo}>
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };

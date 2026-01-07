@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import useAuth from "../../../hooks/useAuth";
 import axiosSecure from "../../../hooks/axiosSecure";
+import LoadingSpinner from "../../../components/comon/LoadingSpinner";
 
 const CreateDonationRequest = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   const [districts, setDistricts] = useState([]);
@@ -14,21 +15,36 @@ const CreateDonationRequest = () => {
 
   // Load district & upazila data
   useEffect(() => {
-    fetch("/District.json")
-      .then((res) => res.json())
-      .then((data) => setDistricts(data));
+    const loadData = async () => {
+      try {
+        const dRes = await fetch("/District.json");
+        const uRes = await fetch("/Upzila.json");
 
-    fetch("/Upzila.json")
-      .then((res) => res.json())
-      .then((data) => setUpazilas(data));
+        setDistricts(await dRes.json());
+        setUpazilas(await uRes.json());
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to load location data");
+      }
+    };
+
+    loadData();
   }, []);
+
+  if (loading || !user) {
+    return <LoadingSpinner />;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const form = e.target;
 
+    const donationDate = form.donationDate.value;
+    if (new Date(donationDate) < new Date().setHours(0, 0, 0, 0)) {
+      return toast.error("Donation date must be today or future");
+    }
+
     const donationRequest = {
-      requesterId: user.uid,                // matches DB
       requesterName: user.displayName,
       requesterEmail: user.email,
 
@@ -41,15 +57,13 @@ const CreateDonationRequest = () => {
       fullAddress: form.fullAddress.value,
 
       bloodGroup: form.bloodGroup.value,
-      donationDate: form.donationDate.value,
+      donationDate,
       donationTime: form.donationTime.value,
 
       requestMessage: form.requestMessage.value,
 
-      donationStatus: "pending",             // ✅ default
-      donorId: null,
-      donorName: null,
-      donorEmail: null,
+      // backend default, but safe to send
+      donationStatus: "pending",
     };
 
     try {
@@ -58,7 +72,6 @@ const CreateDonationRequest = () => {
         donationRequest
       );
 
-      // Blocked user handling (backend sends this message)
       if (res.data?.message === "blocked user") {
         return toast.error(
           "You are blocked. You cannot create donation requests."
@@ -80,20 +93,20 @@ const CreateDonationRequest = () => {
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Requester Info (Read Only) */}
+          {/* Requester Info */}
           <input
-            value={user.displayName}
+            value={user.displayName || ""}
             readOnly
             className="w-full border px-4 py-2 rounded-lg bg-gray-100"
           />
 
           <input
-            value={user.email}
+            value={user.email || ""}
             readOnly
             className="w-full border px-4 py-2 rounded-lg bg-gray-100"
           />
 
-          {/* Recipient Info */}
+          {/* Recipient */}
           <input
             name="recipientName"
             required
@@ -129,7 +142,7 @@ const CreateDonationRequest = () => {
               ))}
           </select>
 
-          {/* Hospital & Address */}
+          {/* Hospital */}
           <input
             name="hospitalName"
             required
@@ -144,7 +157,7 @@ const CreateDonationRequest = () => {
             className="w-full border px-4 py-2 rounded-lg"
           />
 
-          {/* Blood Group */}
+          {/* Blood */}
           <select
             name="bloodGroup"
             required
@@ -184,7 +197,6 @@ const CreateDonationRequest = () => {
             className="w-full border px-4 py-2 rounded-lg"
           />
 
-          {/* Submit */}
           <button
             type="submit"
             className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg"

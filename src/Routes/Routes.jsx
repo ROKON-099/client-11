@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 
 // layouts
 import MainLayout from "../Layout/MainLayout";
@@ -8,13 +8,15 @@ import DashboardLayout from "../Layout/DashboardLayout";
 import Home from "../pages/Dashboard/Home";
 import Login from "../pages/Dashboard/Login";
 import Registration from "../pages/Dashboard/Registration";
-import Search from "../pages/Dashboard/Search";
+import Search from "../pages/Dashboard/search";
 import DonationRequests from "../pages/Dashboard/DonationRequests";
 import DonationDetails from "../pages/Dashboard/DonationDetails";
-import ErrorPage from "../pages/Dashboard/ErrorPage";
+import ErrorPage from "../pages/Dashboard/Errorpage";
 
 // dashboard common
 import Profile from "../pages/Dashboard/Profile";
+import DashboardHome from "../pages/Dashboard/DashboardHome";
+
 
 // admin pages
 import AdminHome from "../pages/Dashboard/Admin/AdminHome";
@@ -37,7 +39,7 @@ import AdminRoute from "./AdminRoute";
 import VolunteerRoute from "./VolunteerRoute";
 
 const router = createBrowserRouter([
-  // ================= MAIN ROUTES =================
+  /* ================= PUBLIC ================= */
   {
     path: "/",
     element: <MainLayout />,
@@ -59,7 +61,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ================= DASHBOARD ROUTES =================
+  /* ================= DASHBOARD ================= */
   {
     path: "/dashboard",
     element: (
@@ -68,23 +70,28 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
     children: [
-      // ✅ DEFAULT DASHBOARD
-      { index: true, element: <DonorHome /> },
+      /* -------- ROLE AWARE LANDING -------- */
+      {
+        index: true,
+        element: <DashboardHome />, // decides based on role
+      },
 
-      // COMMON
+      /* -------- COMMON -------- */
       { path: "profile", element: <Profile /> },
 
-      // ADMIN
+      /* -------- DONOR -------- */
       {
-        path: "admin",
-        element: (
-          <AdminRoute>
-            <AdminHome />
-          </AdminRoute>
-        ),
+        path: "my-donation-requests",
+        element: <MyDonationRequests />,
       },
       {
-        path: "admin/all-users",
+        path: "create-donation-request",
+        element: <CreateDonationRequest />,
+      },
+
+      /* -------- ADMIN -------- */
+      {
+        path: "all-users",
         element: (
           <AdminRoute>
             <AllUsers />
@@ -92,7 +99,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "admin/all-donation-requests",
+        path: "all-blood-donation-request",
         element: (
           <AdminRoute>
             <AllDonationRequestsAdmin />
@@ -100,7 +107,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "admin/funding",
+        path: "funding",
         element: (
           <AdminRoute>
             <Funding />
@@ -108,30 +115,9 @@ const router = createBrowserRouter([
         ),
       },
 
-      // DONOR (original)
-      { path: "donor", element: <DonorHome /> },
+      /* -------- VOLUNTEER -------- */
       {
-        path: "donor/create-donation-request",
-        element: <CreateDonationRequest />,
-      },
-      {
-        path: "donor/my-donation-requests",
-        element: <MyDonationRequests />,
-      },
-
-      // ✅ ADDED (for sidebar compatibility)
-      {
-        path: "create-donation-request",
-        element: <CreateDonationRequest />,
-      },
-      {
-        path: "my-donation-requests",
-        element: <MyDonationRequests />,
-      },
-
-      // VOLUNTEER
-      {
-        path: "volunteer",
+        path: "volunteer-home",
         element: (
           <VolunteerRoute>
             <VolunteerHome />
@@ -139,7 +125,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: "volunteer/all-donation-requests",
+        path: "all-blood-donation-request-volunteer",
         element: (
           <VolunteerRoute>
             <AllDonationRequestsVolunteer />

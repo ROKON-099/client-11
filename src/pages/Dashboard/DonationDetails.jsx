@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -12,11 +12,12 @@ const DonationDetails = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const { data: donation, refetch, isLoading } = useQuery({
+  const { data: donation, isLoading, isError, refetch } = useQuery({
     queryKey: ["donation-details", id],
     queryFn: async () => {
-      const res = await axiosSecure.get(`/donation-requests/${id}`);
-      return res.data;
+      // backend has no single GET route → fetch all & find
+      const res = await axiosSecure.get("/donation-requests/public");
+      return res.data.find((d) => d._id === id);
     },
   });
 
@@ -24,7 +25,6 @@ const DonationDetails = () => {
     try {
       await axiosSecure.patch(`/donation-requests/${id}`, {
         donationStatus: "inprogress",
-        donorId: user.uid,
         donorName: user.displayName,
         donorEmail: user.email,
       });
@@ -32,22 +32,28 @@ const DonationDetails = () => {
       toast.success("Donation confirmed successfully");
       setOpen(false);
       refetch();
-    } catch {
-      toast.error("Failed to confirm donation");
+    } catch (error) {
+      toast.error(
+        error.response?.data?.message || "Failed to confirm donation"
+      );
     }
   };
 
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
+  if (isLoading) return <LoadingSpinner />;
 
-  if (!donation) {
+  if (isError || !donation) {
     return (
       <p className="text-center mt-10 text-red-600">
         Donation request not found
       </p>
     );
   }
+
+  const isOwnRequest = donation.requesterEmail === user?.email;
+  const canDonate =
+    donation.donationStatus === "pending" &&
+    user &&
+    !isOwnRequest;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white px-4 py-10">
@@ -56,7 +62,7 @@ const DonationDetails = () => {
           Donation Request Details
         </h1>
 
-        {/* Donation Info */}
+        {/* Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <Info label="Recipient Name" value={donation.recipientName} />
           <Info
@@ -82,7 +88,7 @@ const DonationDetails = () => {
         </div>
 
         {/* Donate Button */}
-        {donation.donationStatus === "pending" && (
+        {canDonate && (
           <button
             onClick={() => setOpen(true)}
             className="mt-8 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition"
@@ -94,7 +100,7 @@ const DonationDetails = () => {
 
       {/* Modal */}
       {open && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center px-4 z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md">
             <h2 className="text-xl font-semibold text-red-600 mb-4">
               Confirm Donation
@@ -136,8 +142,7 @@ const DonationDetails = () => {
 
 export default DonationDetails;
 
-/* -------- Reusable Info Component -------- */
-
+/* -------- Info Component -------- */
 const Info = ({ label, value }) => (
   <div className="bg-gray-50 p-4 rounded-lg">
     <p className="text-gray-500 text-xs mb-1">{label}</p>
