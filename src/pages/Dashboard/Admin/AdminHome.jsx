@@ -34,7 +34,6 @@ const AdminHome = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4">
       <div className="max-w-7xl mx-auto">
-
         {/* Welcome */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-8">
           <h1 className="text-3xl font-bold text-red-600">
@@ -49,7 +48,7 @@ const AdminHome = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             icon="👥"
-            title="Total Users"
+            title="Total Donors"
             value={stats.users ?? 0}
           />
 

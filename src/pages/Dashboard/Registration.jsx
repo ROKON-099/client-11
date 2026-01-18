@@ -45,7 +45,6 @@ const Registration = () => {
       districts.find((d) => d.id === districtId)?.name;
     const upazila = form.upazila.value;
 
-    /* ---- Validation ---- */
     if (password !== confirmPassword) {
       return toast.error("Passwords do not match");
     }
@@ -61,7 +60,6 @@ const Registration = () => {
     try {
       setLoading(true);
 
-      /* ---- Image Upload (optional) ---- */
       let avatarUrl =
         "https://i.ibb.co/2kRZb5P/avatar.png";
 
@@ -77,19 +75,25 @@ const Registration = () => {
         avatarUrl = imageRes.data.data.display_url;
       }
 
-      /* ---- Firebase Auth ---- */
       await createUser(email, password);
       await updateUserProfile(name, avatarUrl);
 
-      /* ---- Save User in DB ---- */
       await axios.post(`${API_URL}/users`, {
         name,
-        email: email.toLowerCase(),
+        email,
         avatar: avatarUrl,
         bloodGroup,
         district: districtName,
         upazila,
       });
+
+      const jwtRes = await axios.post(`${API_URL}/jwt`, {
+        email,
+      });
+      localStorage.setItem(
+        "access-token",
+        jwtRes.data.token
+      );
 
       toast.success("Registration successful 🎉");
       navigate("/");
@@ -143,7 +147,7 @@ const Registration = () => {
             className="w-full px-4 py-3 border rounded-lg"
           >
             <option value="">Blood Group</option>
-            {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg=>(
+            {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg => (
               <option key={bg}>{bg}</option>
             ))}
           </select>

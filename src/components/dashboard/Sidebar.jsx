@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import useAuth from "../../hooks/useAuth";
 import axiosSecure from "../../hooks/axiosSecure";
@@ -6,6 +6,7 @@ import LoadingSpinner from "../comon/LoadingSpinner";
 
 const Sidebar = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   const { data: dbUser, isLoading } = useQuery({
     queryKey: ["userRole", user?.email],
@@ -23,16 +24,34 @@ const Sidebar = () => {
   const role = dbUser?.role;
 
   return (
-    <aside className="w-64 min-h-screen bg-gradient-to-b from-red-50 via-white to-white border-r shadow-lg hidden md:flex flex-col">
-      
+    <aside className="
+      w-64 min-h-screen
+      bg-gradient-to-b from-red-50 via-white to-white
+      border-r shadow-lg
+      flex flex-col
+    ">
       {/* Brand */}
-      <div className="px-6 py-6 border-b">
+      <div className="px-6 py-6 border-b space-y-3">
         <h1 className="text-2xl font-extrabold bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">
           Blood-Donation
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Welcome back
-        </p>
+
+        {/* 🔹 Back to Home */}
+        <button
+          onClick={() => navigate("/")}
+          className="
+            w-full
+            text-left
+            px-4 py-2
+            rounded-lg
+            border border-red-500
+            text-red-600
+            hover:bg-red-600 hover:text-white
+            transition
+          "
+        >
+          ← Back to Home
+        </button>
       </div>
 
       {/* User Info */}
@@ -54,12 +73,11 @@ const Sidebar = () => {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 mt-4 space-y-2">
-
         {/* Common */}
         <NavItem to="/dashboard" label="Dashboard" />
         <NavItem to="/dashboard/profile" label="My Profile" />
 
-        {/* Donor Menu */}
+        {/* Donor */}
         {role === "donor" && (
           <>
             <NavItem
@@ -73,7 +91,7 @@ const Sidebar = () => {
           </>
         )}
 
-        {/* Admin Menu */}
+        {/* Admin */}
         {role === "admin" && (
           <>
             <NavItem to="/dashboard/all-users" label="All Users" />
@@ -85,7 +103,7 @@ const Sidebar = () => {
           </>
         )}
 
-        {/* Volunteer Menu */}
+        {/* Volunteer */}
         {role === "volunteer" && (
           <NavItem
             to="/dashboard/all-blood-donation-request"

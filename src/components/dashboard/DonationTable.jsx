@@ -74,7 +74,20 @@ const DonationTable = ({
                 {/* Actions */}
                 <td className="border px-3 py-2 space-x-2">
 
-                  {/* Status update (Donor & Volunteer & Admin) */}
+                  {/* ACCEPT (pending → inprogress) */}
+                  {req.donationStatus === "pending" &&
+                    role !== "donor" && (
+                      <button
+                        onClick={() =>
+                          onStatusChange?.(req._id, "inprogress")
+                        }
+                        className="text-green-600"
+                      >
+                        Accept
+                      </button>
+                    )}
+
+                  {/* DONE / CANCEL (inprogress) */}
                   {req.donationStatus === "inprogress" && (
                     <>
                       <button
@@ -125,4 +138,3 @@ const DonationTable = ({
 };
 
 export default DonationTable;
-

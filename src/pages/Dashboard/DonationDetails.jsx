@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -9,15 +9,18 @@ import LoadingSpinner from "../../components/comon/LoadingSpinner";
 const DonationDetails = () => {
   const { id } = useParams();
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const { data: donation, isLoading, isError, refetch } = useQuery({
+  const {
+    data: donation,
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
     queryKey: ["donation-details", id],
     queryFn: async () => {
-      // backend has no single GET route → fetch all & find
-      const res = await axiosSecure.get("/donation-requests/public");
-      return res.data.find((d) => d._id === id);
+      const res = await axiosSecure.get("/donation-requests/all");
+      return res.data.find((d) => d._id === id) || null;
     },
   });
 

@@ -18,7 +18,7 @@ const DonationRequests = () => {
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/donation-requests/public`
       );
-      return res.data;
+      return res.data || [];
     },
   });
 

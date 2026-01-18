@@ -1,12 +1,14 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import useAuth from "../../hooks/useAuth";
 import axiosSecure from "../../hooks/axiosSecure";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
+import AdminHome from "./Admin/AdminHome";
 
 // role-based dashboard redirector
 const DashboardHome = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   const { data: dbUser, isLoading } = useQuery({
     queryKey: ["dashboard-role", user?.email],
@@ -26,26 +28,25 @@ const DashboardHome = () => {
     return <Navigate to="/" replace />;
   }
 
-  // Role-based redirect
-  if (dbUser.role === "admin") {
-    return <Navigate to="/dashboard/all-users" replace />;
-  }
-
-  if (dbUser.role === "volunteer") {
-    return (
-      <Navigate
-        to="/dashboard/all-blood-donation-request"
-        replace
-      />
-    );
-  }
-
-  // donor (default)
   return (
-    <Navigate
-      to="/dashboard/my-donation-requests"
-      replace
-    />
+    <div>
+      {/* 🔹 Role-based content */}
+      {dbUser.role === "admin" && <AdminHome />}
+
+      {dbUser.role === "volunteer" && (
+        <Navigate
+          to="/dashboard/all-blood-donation-request"
+          replace
+        />
+      )}
+
+      {dbUser.role === "donor" && (
+        <Navigate
+          to="/dashboard/my-donation-requests"
+          replace
+        />
+      )}
+    </div>
   );
 };
 
