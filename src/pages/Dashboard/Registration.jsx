@@ -37,12 +37,11 @@ const Registration = () => {
     const name = form.name.value.trim();
     const email = form.email.value.trim();
     const password = form.password.value;
-    const confirmPassword = form.confirmPassword.value;
+    const confirmPassword = form.confirm_password.value;
     const imageFile = form.avatar.files[0];
     const bloodGroup = form.bloodGroup.value;
     const districtId = Number(form.district.value);
-    const districtName =
-      districts.find((d) => d.id === districtId)?.name;
+    const districtName = districts.find((d) => d.id === districtId)?.name;
     const upazila = form.upazila.value;
 
     if (password !== confirmPassword) {
@@ -60,19 +59,22 @@ const Registration = () => {
     try {
       setLoading(true);
 
-      let avatarUrl =
-        "https://i.ibb.co/2kRZb5P/avatar.png";
+      let avatarUrl = "https://i.ibb.co/2kRZb5P/avatar.png";
 
       if (imageFile) {
-        const imageFormData = new FormData();
-        imageFormData.append("image", imageFile);
+        try {
+          const imageFormData = new FormData();
+          imageFormData.append("image", imageFile);
 
-        const imageRes = await axios.post(
-          `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
-          imageFormData
-        );
+          const imageRes = await axios.post(
+            `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
+            imageFormData
+          );
 
-        avatarUrl = imageRes.data.data.display_url;
+          avatarUrl = imageRes.data.data.display_url;
+        } catch {
+          toast.error("Image upload failed. Using default avatar.");
+        }
       }
 
       await createUser(email, password);
@@ -85,22 +87,20 @@ const Registration = () => {
         bloodGroup,
         district: districtName,
         upazila,
+        role: "donor",
+        status: "active",
       });
 
-      const jwtRes = await axios.post(`${API_URL}/jwt`, {
-        email,
-      });
-      localStorage.setItem(
-        "access-token",
-        jwtRes.data.token
-      );
+      const jwtRes = await axios.post(`${API_URL}/jwt`, { email });
+      if (jwtRes?.data?.token) {
+        localStorage.setItem("access-token", jwtRes.data.token);
+      }
 
       toast.success("Registration successful 🎉");
       navigate("/");
     } catch (error) {
       toast.error(
-        error?.response?.data?.message ||
-          "Registration failed"
+        error?.response?.data?.message || "Registration failed"
       );
     } finally {
       setLoading(false);
@@ -147,17 +147,18 @@ const Registration = () => {
             className="w-full px-4 py-3 border rounded-lg"
           >
             <option value="">Blood Group</option>
-            {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg => (
-              <option key={bg}>{bg}</option>
+            {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map((bg) => (
+              <option key={bg} value={bg}>{bg}</option>
             ))}
           </select>
 
           <select
             name="district"
             required
-            onChange={(e) =>
-              setSelectedDistrictId(Number(e.target.value))
-            }
+            onChange={(e) => {
+              setSelectedDistrictId(Number(e.target.value));
+              e.target.form.upazila.value = "";
+            }}
             className="w-full px-4 py-3 border rounded-lg"
           >
             <option value="">District</option>
@@ -175,10 +176,7 @@ const Registration = () => {
           >
             <option value="">Upazila</option>
             {upazilas
-              .filter(
-                (u) =>
-                  u.district_id === selectedDistrictId
-              )
+              .filter((u) => u.district_id === selectedDistrictId)
               .map((u) => (
                 <option key={u.id} value={u.name}>
                   {u.name}
@@ -195,7 +193,7 @@ const Registration = () => {
           />
 
           <input
-            name="confirmPassword"
+            name="confirm_password"
             type="password"
             placeholder="Confirm Password"
             required
@@ -213,10 +211,7 @@ const Registration = () => {
 
         <p className="mt-6 text-center">
           Already have an account?{" "}
-          <Link
-            to="/login"
-            className="text-red-600 font-semibold"
-          >
+          <Link to="/login" className="text-red-600 font-semibold">
             Login
           </Link>
         </p>

@@ -19,51 +19,75 @@ const AdminHome = () => {
     },
   });
 
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
+  if (isLoading) return <LoadingSpinner />;
 
   if (isError) {
     return (
-      <p className="text-center mt-10 text-red-600">
-        Failed to load dashboard data
-      </p>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-500 font-medium">
+          Failed to load dashboard data
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Welcome */}
-        <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-          <h1 className="text-3xl font-bold text-red-600">
-            Welcome, {user?.displayName}
+    <div className="min-h-screen bg-gray-50 px-4 py-8">
+      <div className="max-w-7xl mx-auto space-y-10">
+
+        {/* Title */}
+        <div
+          data-aos="fade-up"
+          className="bg-white rounded-3xl border shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-8"
+        >
+          <h1
+            data-aos="fade-right"
+            data-aos-delay="100"
+            className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent"
+          >
+            Welcome Back, {user?.displayName || "Admin"}
           </h1>
-          <p className="text-gray-600 mt-1">
-            Admin Dashboard Overview
+
+          <p
+            data-aos="fade-up"
+            data-aos-delay="200"
+            className="mt-3 text-gray-500 max-w-xl"
+          >
+            Manage users, track donations, and monitor platform performance.
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <StatCard
-            icon="👥"
-            title="Total Donors"
-            value={stats.users ?? 0}
-          />
+        {/* Stats Cards */}
+        <div
+          data-aos="fade-up"
+          data-aos-delay="300"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition p-6">
+            <p className="text-sm text-gray-500">Total Donors</p>
+            <h2 className="text-3xl font-semibold text-gray-800 mt-2">
+              {stats.users ?? 0}
+            </h2>
+          </div>
 
-          <StatCard
-            icon="💰"
-            title="Total Funding"
-            value={`৳ ${stats.totalFunds ?? 0}`}
-          />
+          <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition p-6">
+            <p className="text-sm text-gray-500">Total Funding</p>
+            <h2 className="text-3xl font-semibold text-gray-800 mt-2">
+              $ {stats.totalFunds ?? 0}
 
-          <StatCard
-            icon="🩸"
-            title="Blood Donation Requests"
-            value={stats.requests ?? 0}
-          />
+            </h2>
+          </div>
+
+          <div className="bg-white rounded-2xl border shadow-sm hover:shadow-md transition p-6">
+            <p className="text-sm text-gray-500">
+              Blood Donation Requests
+            </p>
+            <h2 className="text-3xl font-semibold text-gray-800 mt-2">
+              {stats.requests ?? 0}
+            </h2>
+          </div>
         </div>
+
       </div>
     </div>
   );

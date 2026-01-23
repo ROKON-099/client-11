@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const DonationTable = ({
   data = [],
@@ -7,6 +7,36 @@ const DonationTable = ({
   onDelete,
   showDelete = true,
 }) => {
+  const confirmAction = (message, onConfirm) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-medium">{message}</p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => toast.dismiss(t.id)}
+              className="px-3 py-1 rounded border text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                onConfirm();
+              }}
+              className="px-3 py-1 rounded bg-red-600 text-white text-sm"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      ),
+      {
+        duration: 6000,
+      }
+    );
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full border text-sm">
@@ -73,13 +103,21 @@ const DonationTable = ({
 
                 {/* Actions */}
                 <td className="border px-3 py-2 space-x-2">
-
-                  {/* ACCEPT (pending → inprogress) */}
+                  {/* ACCEPT */}
                   {req.donationStatus === "pending" &&
                     role !== "donor" && (
                       <button
                         onClick={() =>
-                          onStatusChange?.(req._id, "inprogress")
+                          confirmAction(
+                            "Accept this donation request?",
+                            () => {
+                              onStatusChange?.(
+                                req._id,
+                                "inprogress"
+                              );
+                              toast.success("Donation accepted");
+                            }
+                          )
                         }
                         className="text-green-600"
                       >
@@ -87,12 +125,18 @@ const DonationTable = ({
                       </button>
                     )}
 
-                  {/* DONE / CANCEL (inprogress) */}
+                  {/* DONE / CANCEL */}
                   {req.donationStatus === "inprogress" && (
                     <>
                       <button
                         onClick={() =>
-                          onStatusChange?.(req._id, "done")
+                          confirmAction(
+                            "Mark this donation as DONE?",
+                            () => {
+                              onStatusChange?.(req._id, "done");
+                              toast.success("Donation marked as done");
+                            }
+                          )
                         }
                         className="text-green-600"
                       >
@@ -101,7 +145,16 @@ const DonationTable = ({
 
                       <button
                         onClick={() =>
-                          onStatusChange?.(req._id, "canceled")
+                          confirmAction(
+                            "Cancel this donation request?",
+                            () => {
+                              onStatusChange?.(
+                                req._id,
+                                "canceled"
+                              );
+                              toast.success("Donation canceled");
+                            }
+                          )
                         }
                         className="text-red-600"
                       >
@@ -110,18 +163,20 @@ const DonationTable = ({
                     </>
                   )}
 
-                  {/* View */}
-                  <Link
-                    to={`/dashboard/donation/${req._id}`}
-                    className="text-blue-600"
-                  >
-                    View
-                  </Link>
-
-                  {/* Delete (Donor/Admin only) */}
+                  {/* DELETE */}
                   {showDelete && role !== "volunteer" && (
                     <button
-                      onClick={() => onDelete?.(req._id)}
+                      onClick={() =>
+                        confirmAction(
+                          "Delete this donation request?",
+                          () => {
+                            onDelete?.(req._id);
+                            toast.success(
+                              "Donation request deleted"
+                            );
+                          }
+                        )
+                      }
                       className="text-red-600"
                     >
                       Delete
@@ -138,3 +193,4 @@ const DonationTable = ({
 };
 
 export default DonationTable;
+

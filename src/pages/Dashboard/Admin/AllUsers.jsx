@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import axiosSecure from "../../../hooks/axiosSecure";
+import LoadingSpinner from "../../../components/comon/LoadingSpinner";
 
 const AllUsers = () => {
   const [statusFilter, setStatusFilter] = useState("all");
@@ -34,19 +35,27 @@ const AllUsers = () => {
     refetch();
   };
 
+  /* ✅ Use loading component */
   if (isLoading) {
-    return (
-      <p className="text-center mt-10 text-gray-600">
-        Loading users...
-      </p>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4">
-      <div className="max-w-7xl mx-auto bg-white rounded-xl shadow p-6">
+    <div
+      data-aos="fade-up"
+      className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4"
+    >
+      <div
+        data-aos="fade-up"
+        data-aos-delay="100"
+        className="max-w-7xl mx-auto bg-white rounded-xl shadow p-6"
+      >
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
+        <div
+          data-aos="fade-right"
+          data-aos-delay="200"
+          className="flex flex-col md:flex-row md:justify-between md:items-center mb-6"
+        >
           <h1 className="text-2xl font-bold text-red-600">
             All Users
           </h1>
@@ -63,7 +72,7 @@ const AllUsers = () => {
           </select>
         </div>
 
-        {/* Table */}
+        {/* Table (NO AOS HERE) */}
         <div className="overflow-x-auto">
           <table className="w-full border text-sm">
             <thead className="bg-red-100">

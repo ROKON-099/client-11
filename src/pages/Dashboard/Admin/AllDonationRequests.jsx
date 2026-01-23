@@ -39,11 +39,21 @@ const AllBloodDonationRequests = ({ role = "admin" }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4">
-      <div className="max-w-7xl mx-auto bg-white rounded-xl shadow p-6">
-
+    <div
+      data-aos="fade-up"
+      className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4"
+    >
+      <div
+        data-aos="fade-up"
+        data-aos-delay="100"
+        className="max-w-7xl mx-auto bg-white rounded-xl shadow p-6"
+      >
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
+        <div
+          data-aos="fade-right"
+          data-aos-delay="200"
+          className="flex flex-col md:flex-row md:justify-between md:items-center mb-6"
+        >
           <h1 className="text-2xl font-bold text-red-600">
             All Blood Donation Requests
           </h1>
@@ -61,7 +71,7 @@ const AllBloodDonationRequests = ({ role = "admin" }) => {
           </select>
         </div>
 
-        {/* Reusable Table */}
+        {/* Reusable Table (NO AOS INSIDE) */}
         <DonationTable
           data={requests}
           role={role}

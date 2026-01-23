@@ -24,19 +24,21 @@ const Sidebar = () => {
   const role = dbUser?.role;
 
   return (
-    <aside className="
-      w-64 min-h-screen
-      bg-gradient-to-b from-red-50 via-white to-white
-      border-r shadow-lg
-      flex flex-col
-    ">
+    <aside
+      className="
+        w-64 min-h-screen
+        bg-gradient-to-b from-red-50 via-white to-white
+        border-r shadow-lg
+        flex flex-col
+      "
+    >
       {/* Brand */}
       <div className="px-6 py-6 border-b space-y-3">
         <h1 className="text-2xl font-extrabold bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">
           Blood-Donation
         </h1>
 
-        {/* 🔹 Back to Home */}
+        {/* Back to Home */}
         <button
           onClick={() => navigate("/")}
           className="
@@ -75,11 +77,11 @@ const Sidebar = () => {
       <nav className="flex-1 px-4 mt-4 space-y-2">
         {/* Common */}
         <NavItem to="/dashboard" label="Dashboard" />
-        <NavItem to="/dashboard/profile" label="My Profile" />
 
-        {/* Donor */}
+        {/* Donor Only */}
         {role === "donor" && (
           <>
+            <NavItem to="/dashboard/profile" label="My Profile" />
             <NavItem
               to="/dashboard/my-donation-requests"
               label="My Donation Requests"
@@ -106,7 +108,7 @@ const Sidebar = () => {
         {/* Volunteer */}
         {role === "volunteer" && (
           <NavItem
-            to="/dashboard/all-blood-donation-request"
+            to="/dashboard/all-blood-donation-request-volunteer"
             label="All Donation Requests"
           />
         )}

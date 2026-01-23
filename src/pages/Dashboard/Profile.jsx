@@ -8,7 +8,6 @@ const Profile = () => {
   const { user } = useAuth();
 
   const [profile, setProfile] = useState({});
-  const [isEditing, setIsEditing] = useState(false);
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
@@ -19,7 +18,9 @@ const Profile = () => {
     const fetchData = async () => {
       try {
         if (user?.email) {
-          const res = await axiosSecure.get(`/users/${user.email.toLowerCase()}`);
+          const res = await axiosSecure.get(
+            `/users/${user.email.toLowerCase()}`
+          );
           setProfile(res.data);
           setSelectedDistrict(res.data?.district || "");
         }
@@ -31,7 +32,7 @@ const Profile = () => {
 
         setDistricts(await districtRes.json());
         setUpazilas(await upazilaRes.json());
-      } catch (error) {
+      } catch {
         toast.error("Failed to load profile data");
       } finally {
         setIsLoading(false);
@@ -59,7 +60,6 @@ const Profile = () => {
 
       await axiosSecure.patch(`/users/${user.email}`, updateData);
       toast.success("Profile updated successfully");
-      setIsEditing(false);
     } catch {
       toast.error("Failed to update profile");
     }
@@ -67,24 +67,37 @@ const Profile = () => {
 
   if (isLoading) return <LoadingSpinner />;
 
+  /* ---------- DONOR ONLY ACCESS ---------- */
+  if (profile?.role !== "donor") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <h2 className="text-lg font-semibold text-gray-500">
+          This page is only available for donors.
+        </h2>
+      </div>
+    );
+  }
+
   /* ---------------- UI ---------------- */
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <div className="max-w-5xl mx-auto">
 
-      {/* Header */}
-      <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl p-6 text-white shadow-lg mb-6">
-        <h1 className="text-3xl font-bold">My Profile</h1>
-        <p className="text-sm opacity-90">
-          Manage your personal information
-        </p>
-      </div>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-semibold text-gray-800">
+            My Profile
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage your personal information
+          </p>
+        </div>
 
-      {/* Card */}
-      <div className="bg-white rounded-2xl shadow-md p-6 md:p-8">
+        {/* Profile Card */}
+        <div className="bg-white rounded-2xl shadow-sm border p-6 md:p-10">
 
-        {/* Top */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-4">
+          {/* Top Section */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-10">
             <img
               src={
                 profile.avatar ||
@@ -92,109 +105,114 @@ const Profile = () => {
                 "https://i.ibb.co/2kRZb5P/avatar.png"
               }
               alt="profile"
-              className="w-20 h-20 rounded-full object-cover ring-4 ring-red-100"
+              className="w-28 h-28 rounded-full object-cover ring-2 ring-rose-200"
             />
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                {profile.name || "User"}
+
+            <div className="text-center sm:text-left">
+              <h2 className="text-2xl font-medium text-gray-800">
+                {profile.name || "User Name"}
               </h2>
-              <p className="text-sm text-gray-500">
-                {profile.bloodGroup || "Blood Group"}
+              <p className="text-sm text-gray-500 mt-1">
+                Blood Group:{" "}
+                <span className="font-semibold text-rose-500">
+                  {profile.bloodGroup || "N/A"}
+                </span>
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {profile.email}
               </p>
             </div>
           </div>
 
-          {!isEditing ? (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="px-5 py-2 rounded-xl bg-gray-900 text-white hover:bg-gray-800 transition"
-            >
-              Edit Profile
-            </button>
-          ) : (
+          {/* Form */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <Input
+              label="Full Name"
+              name="name"
+              value={profile.name || ""}
+              onChange={handleChange}
+            />
+
+            <Input
+              label="Email Address"
+              value={profile.email || ""}
+              disabled
+            />
+
+            {/* District */}
+            <div>
+              <label className="text-sm font-medium text-gray-600">
+                District
+              </label>
+              <select
+                value={selectedDistrict}
+                onChange={(e) => {
+                  setSelectedDistrict(e.target.value);
+                  setProfile((p) => ({ ...p, upazila: "" }));
+                }}
+                className="w-full mt-1 px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-rose-300"
+              >
+                <option value="">Select District</option>
+                {districts.map((d) => (
+                  <option key={d.id} value={d.name}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Upazila */}
+            <div>
+              <label className="text-sm font-medium text-gray-600">
+                Upazila
+              </label>
+              <select
+                name="upazila"
+                value={profile.upazila || ""}
+                onChange={handleChange}
+                className="w-full mt-1 px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-rose-300"
+              >
+                <option value="">Select Upazila</option>
+                {upazilas
+                  .filter((u) => u.district === selectedDistrict)
+                  .map((u) => (
+                    <option key={u.id} value={u.name}>
+                      {u.name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Blood Group */}
+            <div>
+              <label className="text-sm font-medium text-gray-600">
+                Blood Group
+              </label>
+              <select
+                name="bloodGroup"
+                value={profile.bloodGroup || ""}
+                onChange={handleChange}
+                className="w-full mt-1 px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-rose-300"
+              >
+                <option value="">Select Blood Group</option>
+                {["A+","A-","B+","B-","O+","O-","AB+","AB-"].map(bg => (
+                  <option key={bg}>{bg}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Save Button */}
+          <div className="mt-10 flex justify-end">
             <button
               onClick={handleSave}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white hover:opacity-90 transition"
+              className="px-8 py-2.5 rounded-lg bg-rose-500 text-white font-medium hover:bg-rose-600 transition"
             >
               Save Changes
             </button>
-          )}
-        </div>
-
-        {/* Form */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <Input
-            label="Full Name"
-            name="name"
-            value={profile.name || ""}
-            onChange={handleChange}
-            disabled={!isEditing}
-          />
-
-          <Input
-            label="Email"
-            value={profile.email || ""}
-            disabled
-          />
-
-          {/* District */}
-          <div>
-            <label className="text-sm text-gray-600">District</label>
-            <select
-              disabled={!isEditing}
-              value={selectedDistrict}
-              onChange={(e) => {
-                setSelectedDistrict(e.target.value);
-                setProfile((p) => ({ ...p, upazila: "" }));
-              }}
-              className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-300 disabled:bg-gray-100"
-            >
-              <option value="">Select District</option>
-              {districts.map((d) => (
-                <option key={d.id} value={d.name}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
           </div>
 
-          {/* Upazila */}
-          <div>
-            <label className="text-sm text-gray-600">Upazila</label>
-            <select
-              name="upazila"
-              disabled={!isEditing || !selectedDistrict}
-              value={profile.upazila || ""}
-              onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-300 disabled:bg-gray-100"
-            >
-              <option value="">Select Upazila</option>
-              {upazilas
-                .filter((u) => u.district === selectedDistrict)
-                .map((u) => (
-                  <option key={u.id} value={u.name}>
-                    {u.name}
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          {/* Blood Group */}
-          <div>
-            <label className="text-sm text-gray-600">Blood Group</label>
-            <select
-              name="bloodGroup"
-              disabled={!isEditing}
-              value={profile.bloodGroup || ""}
-              onChange={handleChange}
-              className="w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-300 disabled:bg-gray-100"
-            >
-              <option value="">Select</option>
-              {["A+","A-","B+","B-","O+","O-","AB+","AB-"].map(bg=>(
-                <option key={bg}>{bg}</option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
     </div>
@@ -206,11 +224,13 @@ export default Profile;
 /* ---------------- Reusable Input ---------------- */
 const Input = ({ label, ...props }) => (
   <div>
-    <label className="text-sm text-gray-600">{label}</label>
+    <label className="text-sm font-medium text-gray-600">
+      {label}
+    </label>
     <input
       {...props}
-      className={`w-full mt-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-red-300 ${
-        props.disabled ? "bg-gray-100" : ""
+      className={`w-full mt-1 px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-rose-300 ${
+        props.disabled ? "bg-gray-100 cursor-not-allowed" : ""
       }`}
     />
   </div>

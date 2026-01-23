@@ -6,10 +6,16 @@ import DonationTable from "../../../components/dashboard/DonationTable";
 import toast from "react-hot-toast";
 
 const VolunteerHome = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  const { data: requests = [], isLoading, refetch } = useQuery({
-    queryKey: ["volunteer-recent-requests"],
+  const {
+    data: requests = [],
+    isLoading,
+    refetch,
+    isError,
+  } = useQuery({
+    queryKey: ["volunteer-recent-requests", user?.email],
+    enabled: !loading && !!user,
     queryFn: async () => {
       const res = await axiosSecure.get("/donation-requests/all");
       return res.data.slice(0, 5); // recent 5
@@ -28,7 +34,15 @@ const VolunteerHome = () => {
     }
   };
 
-  if (isLoading) return <LoadingSpinner />;
+  if (loading || isLoading) return <LoadingSpinner />;
+
+  if (isError) {
+    return (
+      <p className="text-center mt-10 text-red-600">
+        Failed to load donation requests
+      </p>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4">

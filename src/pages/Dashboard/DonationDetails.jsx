@@ -18,9 +18,10 @@ const DonationDetails = () => {
     refetch,
   } = useQuery({
     queryKey: ["donation-details", id],
+    enabled: !!id, // ✅ safety
     queryFn: async () => {
-      const res = await axiosSecure.get("/donation-requests/all");
-      return res.data.find((d) => d._id === id) || null;
+      const res = await axiosSecure.get(`/donation-requests/${id}`);
+      return res.data;
     },
   });
 
@@ -44,7 +45,7 @@ const DonationDetails = () => {
 
   if (isLoading) return <LoadingSpinner />;
 
-  if (isError || !donation) {
+  if (isError || !donation?._id) {
     return (
       <p className="text-center mt-10 text-red-600">
         Donation request not found
@@ -53,6 +54,7 @@ const DonationDetails = () => {
   }
 
   const isOwnRequest = donation.requesterEmail === user?.email;
+
   const canDonate =
     donation.donationStatus === "pending" &&
     user &&
@@ -112,12 +114,12 @@ const DonationDetails = () => {
             <div className="space-y-3">
               <input
                 readOnly
-                value={user.displayName}
+                value={user?.displayName || ""}
                 className="w-full border px-4 py-2 rounded-lg bg-gray-100"
               />
               <input
                 readOnly
-                value={user.email}
+                value={user?.email || ""}
                 className="w-full border px-4 py-2 rounded-lg bg-gray-100"
               />
             </div>
@@ -149,6 +151,8 @@ export default DonationDetails;
 const Info = ({ label, value }) => (
   <div className="bg-gray-50 p-4 rounded-lg">
     <p className="text-gray-500 text-xs mb-1">{label}</p>
-    <p className="font-medium text-gray-800">{value}</p>
+    <p className="font-medium text-gray-800">
+      {value || "N/A"}
+    </p>
   </div>
 );

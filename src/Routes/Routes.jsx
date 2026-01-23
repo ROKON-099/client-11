@@ -1,10 +1,10 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 
-// layouts
+/* ================= LAYOUTS ================= */
 import MainLayout from "../Layout/MainLayout";
 import DashboardLayout from "../Layout/DashboardLayout";
 
-// public pages
+/* ================= PUBLIC PAGES ================= */
 import Home from "../pages/Dashboard/Home";
 import Login from "../pages/Dashboard/Login";
 import Registration from "../pages/Dashboard/Registration";
@@ -13,31 +13,31 @@ import DonationRequests from "../pages/Dashboard/DonationRequests";
 import DonationDetails from "../pages/Dashboard/DonationDetails";
 import ErrorPage from "../pages/Dashboard/Errorpage";
 
-// dashboard common
+/* ================= DASHBOARD COMMON ================= */
 import Profile from "../pages/Dashboard/Profile";
 import DashboardHome from "../pages/Dashboard/DashboardHome";
+import Funding from "../pages/Dashboard/Funding";
 
-
-// admin pages
+/* ================= ADMIN ================= */
 import AdminHome from "../pages/Dashboard/Admin/AdminHome";
 import AllUsers from "../pages/Dashboard/Admin/AllUsers";
 import AllDonationRequestsAdmin from "../pages/Dashboard/Admin/AllDonationRequests";
-import Funding from "../pages/Dashboard/Admin/Funding";
 
-// donor pages
+/* ================= DONOR ================= */
 import DonorHome from "../pages/Dashboard/Donor/DonorHome";
 import CreateDonationRequest from "../pages/Dashboard/Donor/CreateDonationRequest";
 import MyDonationRequests from "../pages/Dashboard/Donor/MyDonationRequests";
 
-// volunteer pages
+/* ================= VOLUNTEER ================= */
 import VolunteerHome from "../pages/Dashboard/Volunteer/VolunteerHome";
 import AllDonationRequestsVolunteer from "../pages/Dashboard/Volunteer/AllDonationRequests";
 
-// route guards
+/* ================= ROUTE GUARDS ================= */
 import PrivateRoute from "./PrivateRoute";
 import AdminRoute from "./AdminRoute";
 import VolunteerRoute from "./VolunteerRoute";
 
+/* ================= ROUTER ================= */
 const router = createBrowserRouter([
   /* ================= PUBLIC ================= */
   {
@@ -73,11 +73,23 @@ const router = createBrowserRouter([
       /* -------- ROLE AWARE LANDING -------- */
       {
         index: true,
-        element: <DashboardHome />, // decides based on role
+        element: <DashboardHome />,
       },
 
       /* -------- COMMON -------- */
-      { path: "profile", element: <Profile /> },
+      {
+        path: "profile",
+        element: <Profile />,
+      },
+
+      {
+        path: "funding",
+        element: (
+          <PrivateRoute>
+            <Funding />
+          </PrivateRoute>
+        ),
+      },
 
       /* -------- DONOR -------- */
       {
@@ -103,14 +115,6 @@ const router = createBrowserRouter([
         element: (
           <AdminRoute>
             <AllDonationRequestsAdmin />
-          </AdminRoute>
-        ),
-      },
-      {
-        path: "funding",
-        element: (
-          <AdminRoute>
-            <Funding />
           </AdminRoute>
         ),
       },

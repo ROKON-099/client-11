@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../../firebase/firebase.config";
 import toast from "react-hot-toast";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import axios from "axios";
 
 import useAuth from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
@@ -25,46 +24,35 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
     const email = e.target.email.value.trim();
     const password = e.target.password.value;
 
     try {
       setLoading(true);
+
+      // 🔐 Firebase login
       await signIn(email, password);
+
+      // 🔑 Request JWT after successful login
+      const jwtRes = await axios.post(
+        `${import.meta.env.VITE_API_URL}/jwt`,
+        { email }
+      );
+
+      if (jwtRes?.data?.token) {
+        localStorage.setItem("access-token", jwtRes.data.token);
+      }
+
       toast.success("Login successful 🎉");
       navigate(from, { replace: true });
     } catch (err) {
       toast.error(
         err.code === "auth/wrong-password" ||
-          err.code === "auth/user-not-found"
+        err.code === "auth/user-not-found"
           ? "Invalid email or password"
           : "Login failed"
       );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-
-      // Save user to DB if not exists
-      await axios.post(`${import.meta.env.VITE_API_URL}/users`, {
-        name: user.displayName,
-        email: user.email.toLowerCase(),
-        avatar: user.photoURL || "https://i.ibb.co/2kRZb5P/avatar.png",
-        bloodGroup: "",
-        district: "",
-        upazila: "",
-      });
-
-      toast.success("Logged in with Google 🎉");
-      navigate(from, { replace: true });
-    } catch (error) {
-      toast.error("Google login failed");
     } finally {
       setLoading(false);
     }
@@ -125,28 +113,6 @@ const Login = () => {
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-
-        {/* Divider */}
-        <div className="flex items-center my-6">
-          <div className="flex-grow h-px bg-gray-300"></div>
-          <span className="mx-3 text-gray-500 text-sm">OR</span>
-          <div className="flex-grow h-px bg-gray-300"></div>
-        </div>
-
-        {/* Google Login */}
-        <button
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          className="w-full flex items-center justify-center gap-3 border py-3 rounded-lg hover:bg-gray-100 transition"
-          data-aos="fade-left"
-        >
-          <img
-            src="https://www.svgrepo.com/show/355037/google.svg"
-            alt="Google"
-            className="w-5 h-5"
-          />
-          Continue with Google
-        </button>
 
         {/* Register Link */}
         <p className="mt-6 text-center text-gray-600" data-aos="zoom-in">
