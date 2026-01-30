@@ -98,15 +98,16 @@ const Profile = () => {
 
           {/* Top Section */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-10">
-            <img
-              src={
-                profile.avatar ||
-                user?.photoURL ||
-                "https://i.ibb.co/2kRZb5P/avatar.png"
-              }
-              alt="profile"
-              className="w-28 h-28 rounded-full object-cover ring-2 ring-rose-200"
-            />
+           <img
+  src={
+    profile?.avatar
+      ? profile.avatar
+      : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+  }
+  alt="profile"
+  className="w-28 h-28 rounded-full object-cover ring-2 ring-rose-200"
+/>
+
 
             <div className="text-center sm:text-left">
               <h2 className="text-2xl font-medium text-gray-800">

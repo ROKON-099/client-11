@@ -16,7 +16,7 @@ const LoadingSpinner = () => {
 
           {/* Center Icon */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-3xl animate-pulse">🩸</span>
+            <span className="text-3xl animate-pulse"></span>
           </div>
         </div>
 
@@ -26,7 +26,7 @@ const LoadingSpinner = () => {
             Loading, please wait
           </p>
           <p className="text-sm text-gray-500 animate-pulse">
-            Preparing something lifesaving ❤️
+            Preparing something lifesaving 
           </p>
         </div>
       </div>

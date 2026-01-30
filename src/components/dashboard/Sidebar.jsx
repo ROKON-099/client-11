@@ -79,20 +79,22 @@ const Sidebar = () => {
         <NavItem to="/dashboard" label="Dashboard" end />
 
 
-        {/* Donor Only */}
-        {role === "donor" && (
-          <>
-            <NavItem to="/dashboard/profile" label="My Profile" />
-            <NavItem
-              to="/dashboard/my-donation-requests"
-              label="My Donation Requests"
-            />
-            <NavItem
-              to="/dashboard/create-donation-request"
-              label="Create Donation Request"
-            />
-          </>
-        )}
+       {/* Donor Only */}
+{role === "donor" && (
+  <>
+    <NavItem to="/dashboard/profile" label="My Profile" />
+    <NavItem
+      to="/dashboard/my-donation-requests"
+      label="My Donation Requests"
+    />
+    <NavItem
+      to="/dashboard/create-donation-request"
+      label="Create Donation Request"
+    />
+    <NavItem to="/dashboard/funding" label="Funding" /> {/* ✅ ADDED */}
+  </>
+)}
+
 
         {/* Admin */}
         {role === "admin" && (
