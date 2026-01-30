@@ -11,7 +11,7 @@ import Registration from "../pages/Dashboard/Registration";
 import Search from "../pages/Dashboard/search";
 import DonationRequests from "../pages/Dashboard/DonationRequests";
 import DonationDetails from "../pages/Dashboard/DonationDetails";
-import ErrorPage from "../pages/Dashboard/Errorpage";
+import ErrorPage from "../pages/Dashboard/ErrorPage";
 
 /* ================= DASHBOARD COMMON ================= */
 import Profile from "../pages/Dashboard/Profile";
