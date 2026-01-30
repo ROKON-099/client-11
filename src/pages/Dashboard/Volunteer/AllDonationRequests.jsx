@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axiosSecure from "../../../hooks/axiosSecure";
 import useAuth from "../../../hooks/useAuth";
@@ -6,6 +7,7 @@ import toast from "react-hot-toast";
 
 const AllDonationRequests = () => {
   const { user, loading } = useAuth();
+  const [status, setStatus] = useState("all");
 
   const {
     data: requests = [],
@@ -13,10 +15,13 @@ const AllDonationRequests = () => {
     refetch,
     isError,
   } = useQuery({
-    queryKey: ["all-donation-requests"],
+    queryKey: ["all-donation-requests", status],
     enabled: !loading && !!user?.email,
     queryFn: async () => {
-      const res = await axiosSecure.get("/donation-requests/all");
+      const query = status === "all" ? "" : `?status=${status}`;
+      const res = await axiosSecure.get(
+        `/donation-requests/all${query}`
+      );
       return res.data;
     },
   });
@@ -46,79 +51,122 @@ const AllDonationRequests = () => {
   }
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">
-        All Donation Requests
-      </h1>
+    <div
+      data-aos="fade-up"
+      className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4"
+    >
+      <div
+        data-aos="fade-up"
+        data-aos-delay="100"
+        className="max-w-7xl mx-auto bg-white rounded-xl shadow p-6"
+      >
+        {/* Header */}
+        <div
+          data-aos="fade-right"
+          data-aos-delay="200"
+          className="flex flex-col md:flex-row md:justify-between md:items-center mb-6"
+        >
+          <h1 className="text-2xl font-bold text-red-600">
+            All Blood Donation Requests
+          </h1>
 
-      <table className="w-full border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">Recipient</th>
-            <th className="border p-2">Blood Group</th>
-            <th className="border p-2">Status</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="mt-3 md:mt-0 border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
+          >
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="inprogress">In Progress</option>
+            <option value="done">Done</option>
+            <option value="canceled">Canceled</option>
+          </select>
+        </div>
 
-        <tbody>
-          {requests.map((req) => (
-            <tr key={req._id}>
-              <td className="border p-2">{req.recipientName}</td>
-              <td className="border p-2">{req.bloodGroup}</td>
-              <td className="border p-2 capitalize">
-                {req.donationStatus}
-              </td>
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full border rounded-lg overflow-hidden">
+            <thead className="bg-red-100">
+              <tr>
+                <th className="border p-3 text-left">Recipient</th>
+                <th className="border p-3 text-left">Blood Group</th>
+                <th className="border p-3 text-left">Status</th>
+                <th className="border p-3 text-left">Actions</th>
+              </tr>
+            </thead>
 
-              <td className="border p-2 space-x-2">
-                {/* VALID FLOW ONLY */}
-                {req.donationStatus === "pending" && (
-                  <button
-                    onClick={() =>
-                      handleUpdateStatus(req._id, "inprogress")
-                    }
-                    className="px-3 py-1 bg-blue-500 text-white rounded"
+            <tbody>
+              {requests.map((req) => (
+                <tr
+                  key={req._id}
+                  className="hover:bg-gray-50 transition"
+                >
+                  <td className="border p-3">
+                    {req.recipientName}
+                  </td>
+                  <td className="border p-3 font-semibold">
+                    {req.bloodGroup}
+                  </td>
+                  <td className="border p-3 capitalize">
+                    {req.donationStatus}
+                  </td>
+
+                  <td className="border p-3 space-x-2">
+                    {req.donationStatus === "pending" && (
+                      <button
+                        onClick={() =>
+                          handleUpdateStatus(
+                            req._id,
+                            "inprogress"
+                          )
+                        }
+                        className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded transition"
+                      >
+                        In Progress
+                      </button>
+                    )}
+
+                    {req.donationStatus === "inprogress" && (
+                      <>
+                        <button
+                          onClick={() =>
+                            handleUpdateStatus(req._id, "done")
+                          }
+                          className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded transition"
+                        >
+                          Done
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleUpdateStatus(
+                              req._id,
+                              "canceled"
+                            )
+                          }
+                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+
+              {requests.length === 0 && (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="text-center py-6 text-gray-500"
                   >
-                    In Progress
-                  </button>
-                )}
-
-                {req.donationStatus === "inprogress" && (
-                  <>
-                    <button
-                      onClick={() =>
-                        handleUpdateStatus(req._id, "done")
-                      }
-                      className="px-3 py-1 bg-green-600 text-white rounded"
-                    >
-                      Done
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleUpdateStatus(req._id, "canceled")
-                      }
-                      className="px-3 py-1 bg-red-600 text-white rounded"
-                    >
-                      Cancel
-                    </button>
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
-
-          {requests.length === 0 && (
-            <tr>
-              <td
-                colSpan="4"
-                className="text-center py-6 text-gray-500"
-              >
-                No donation requests found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+                    No donation requests found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };

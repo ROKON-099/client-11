@@ -19,17 +19,14 @@ import DashboardHome from "../pages/Dashboard/DashboardHome";
 import Funding from "../pages/Dashboard/Funding";
 
 /* ================= ADMIN ================= */
-import AdminHome from "../pages/Dashboard/Admin/AdminHome";
 import AllUsers from "../pages/Dashboard/Admin/AllUsers";
 import AllDonationRequestsAdmin from "../pages/Dashboard/Admin/AllDonationRequests";
 
 /* ================= DONOR ================= */
-import DonorHome from "../pages/Dashboard/Donor/DonorHome";
 import CreateDonationRequest from "../pages/Dashboard/Donor/CreateDonationRequest";
 import MyDonationRequests from "../pages/Dashboard/Donor/MyDonationRequests";
 
 /* ================= VOLUNTEER ================= */
-import VolunteerHome from "../pages/Dashboard/Volunteer/VolunteerHome";
 import AllDonationRequestsVolunteer from "../pages/Dashboard/Volunteer/AllDonationRequests";
 
 /* ================= ROUTE GUARDS ================= */
@@ -70,18 +67,17 @@ const router = createBrowserRouter([
       </PrivateRoute>
     ),
     children: [
-      /* -------- ROLE AWARE LANDING -------- */
+      /* ===== DASHBOARD HOME (ROLE AWARE) ===== */
       {
         index: true,
         element: <DashboardHome />,
       },
 
-      /* -------- COMMON -------- */
+      /* ===== COMMON ===== */
       {
         path: "profile",
         element: <Profile />,
       },
-
       {
         path: "funding",
         element: (
@@ -91,7 +87,7 @@ const router = createBrowserRouter([
         ),
       },
 
-      /* -------- DONOR -------- */
+      /* ===== DONOR ===== */
       {
         path: "my-donation-requests",
         element: <MyDonationRequests />,
@@ -101,7 +97,7 @@ const router = createBrowserRouter([
         element: <CreateDonationRequest />,
       },
 
-      /* -------- ADMIN -------- */
+      /* ===== ADMIN ===== */
       {
         path: "all-users",
         element: (
@@ -119,15 +115,7 @@ const router = createBrowserRouter([
         ),
       },
 
-      /* -------- VOLUNTEER -------- */
-      {
-        path: "volunteer-home",
-        element: (
-          <VolunteerRoute>
-            <VolunteerHome />
-          </VolunteerRoute>
-        ),
-      },
+      /* ===== VOLUNTEER ===== */
       {
         path: "all-blood-donation-request-volunteer",
         element: (

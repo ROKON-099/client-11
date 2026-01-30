@@ -76,7 +76,8 @@ const Sidebar = () => {
       {/* Navigation */}
       <nav className="flex-1 px-4 mt-4 space-y-2">
         {/* Common */}
-        <NavItem to="/dashboard" label="Dashboard" />
+        <NavItem to="/dashboard" label="Dashboard" end />
+
 
         {/* Donor Only */}
         {role === "donor" && (
@@ -106,11 +107,16 @@ const Sidebar = () => {
         )}
 
         {/* Volunteer */}
+        {/* Volunteer */}
         {role === "volunteer" && (
-          <NavItem
-            to="/dashboard/all-blood-donation-request-volunteer"
-            label="All Donation Requests"
-          />
+          <>
+            <NavItem
+              to="/dashboard/all-blood-donation-request-volunteer"
+              label="All Donation Requests"
+            />
+            {/* ✅ ADDED */}
+            <NavItem to="/dashboard/funding" label="Funding" />
+          </>
         )}
       </nav>
     </aside>
@@ -135,4 +141,4 @@ const NavItem = ({ to, label }) => (
       {label}
     </span>
   </NavLink>
-);
+);  

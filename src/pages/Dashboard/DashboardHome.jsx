@@ -1,14 +1,17 @@
-import { Navigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import useAuth from "../../hooks/useAuth";
 import axiosSecure from "../../hooks/axiosSecure";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
+
+/* ROLE HOMES */
 import AdminHome from "./Admin/AdminHome";
+import VolunteerHome from "./Volunteer/VolunteerHome";
+import DonorHome from "./Donor/DonorHome";
 
 const DashboardHome = () => {
   const { user, loading } = useAuth();
 
-  const { data: dbUser, isLoading } = useQuery({
+  const { data: dbUser, isLoading, isError } = useQuery({
     queryKey: ["dashboard-role", user?.email],
     enabled: !loading && !!user?.email,
     queryFn: async () => {
@@ -22,9 +25,13 @@ const DashboardHome = () => {
     return <LoadingSpinner />;
   }
 
-  // 🔐 Safety fallback
-  if (!dbUser?.role) {
-    return <Navigate to="/" replace />;
+  // ❌ DO NOT redirect logged-in user
+  if (isError || !dbUser?.role) {
+    return (
+      <p className="text-center mt-10 text-red-600">
+        Failed to load dashboard
+      </p>
+    );
   }
 
   // 👑 ADMIN
@@ -34,21 +41,11 @@ const DashboardHome = () => {
 
   // 🤝 VOLUNTEER
   if (dbUser.role === "volunteer") {
-    return (
-      <Navigate
-        to="/dashboard/all-blood-donation-request-volunteer"
-        replace
-      />
-    );
+    return <VolunteerHome />;
   }
 
-  // 🩸 DONOR (default)
-  return (
-    <Navigate
-      to="/dashboard/my-donation-requests"
-      replace
-    />
-  );
+  // 🩸 DONOR
+  return <DonorHome />;
 };
 
 export default DashboardHome;
