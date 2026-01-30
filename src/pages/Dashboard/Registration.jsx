@@ -59,9 +59,9 @@ const Registration = () => {
     try {
       setLoading(true);
 
-      let avatarUrl = "https://i.ibb.co/2kRZb5P/avatar.png";
+      let avatarUrl = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-      if (imageFile) {
+      if (imageFile && imageBBKey) {
         try {
           const imageFormData = new FormData();
           imageFormData.append("image", imageFile);
