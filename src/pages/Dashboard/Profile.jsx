@@ -3,11 +3,9 @@ import axiosSecure from "../../hooks/axiosSecure";
 import useAuth from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
 import toast from "react-hot-toast";
-import { updateProfile } from "firebase/auth";
-import { auth } from "../../firebase/firebase.config";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
 
   const [profile, setProfile] = useState({});
   const [districts, setDistricts] = useState([]);
@@ -61,7 +59,7 @@ const Profile = () => {
         bloodGroup: profile.bloodGroup,
         district: selectedDistrict,
         upazila: profile.upazila,
-        avatar: profile.avatar, // ✅ DB avatar
+        avatar: profile.avatar,
       };
 
       // ✅ Update DB
@@ -70,15 +68,10 @@ const Profile = () => {
         updateData
       );
 
-      // ✅ Sync Firebase profile (for navbar fallback)
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, {
-          displayName: profile.name,
-          photoURL: profile.avatar,
-        });
-      }
+      // ✅ Update Firebase + Context sync
+      await updateUserProfile(profile.name, profile.avatar);
 
-      await fetchProfile(); // refresh UI
+      await fetchProfile();
       toast.success("Profile updated successfully");
     } catch {
       toast.error("Failed to update profile");
@@ -245,3 +238,4 @@ const Input = ({ label, ...props }) => (
     />
   </div>
 );
+

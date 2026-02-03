@@ -20,7 +20,7 @@ const AuthProvider = ({ children }) => {
   ====================== */
   const createUser = async (email, password) => {
     setLoading(true);
-    return await createUserWithEmailAndPassword(auth, email, password);
+    return createUserWithEmailAndPassword(auth, email, password);
   };
 
   /* ======================
@@ -28,7 +28,7 @@ const AuthProvider = ({ children }) => {
   ====================== */
   const signIn = async (email, password) => {
     setLoading(true);
-    return await signInWithEmailAndPassword(auth, email, password);
+    return signInWithEmailAndPassword(auth, email, password);
   };
 
   /* ======================
@@ -44,6 +44,7 @@ const AuthProvider = ({ children }) => {
 
   /* ======================
      UPDATE PROFILE (NAME + AVATAR)
+     ❗ NO setUser HERE
   ====================== */
   const updateUserProfile = async (name, photoURL) => {
     if (!auth.currentUser) return;
@@ -53,9 +54,8 @@ const AuthProvider = ({ children }) => {
       photoURL,
     });
 
-    // 🔥 Force refresh user
+    // 🔥 only reload, let observer handle state
     await auth.currentUser.reload();
-    setUser({ ...auth.currentUser });
   };
 
   /* ======================
@@ -72,7 +72,6 @@ const AuthProvider = ({ children }) => {
             `${import.meta.env.VITE_API_URL}/jwt`,
             { email: currentUser.email.toLowerCase() }
           );
-
           localStorage.setItem("token", res.data.token);
         } catch (error) {
           console.error("JWT error:", error);

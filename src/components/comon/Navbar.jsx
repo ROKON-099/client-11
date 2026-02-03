@@ -14,7 +14,7 @@ const Navbar = () => {
   const [dbUser, setDbUser] = useState(null);
   const navigate = useNavigate();
 
-  // 🔥 Fetch user from DB (avatar comes from DB)
+  /* ---------------- Fetch user from DB ---------------- */
   useEffect(() => {
     if (user?.email) {
       axiosSecure
@@ -71,7 +71,11 @@ const Navbar = () => {
             ) : (
               <div className="relative group">
                 <img
-                  src={dbUser?.avatar || DEFAULT_AVATAR}
+                  src={
+                    user?.photoURL ||
+                    dbUser?.avatar ||
+                    DEFAULT_AVATAR
+                  }
                   alt="user"
                   className="w-10 h-10 rounded-full cursor-pointer border object-cover"
                 />

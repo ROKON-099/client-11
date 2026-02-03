@@ -89,7 +89,6 @@ const Registration = () => {
       });
 
       toast.success("Registration successful 🎉");
-
       form.reset();
     } catch (error) {
       toast.error(error?.message || "Registration failed");
@@ -112,13 +111,34 @@ const Registration = () => {
           </h2>
 
           <form onSubmit={handleRegister} className="space-y-4">
-            <input name="name" type="text" placeholder="Full Name" required className="w-full px-4 py-3 border rounded-lg" />
+            <input
+              name="name"
+              type="text"
+              placeholder="Full Name"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            />
 
-            <input name="email" type="email" placeholder="Email Address" required className="w-full px-4 py-3 border rounded-lg" />
+            <input
+              name="email"
+              type="email"
+              placeholder="Email Address"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            />
 
-            <input name="avatar" type="file" accept="image/*" className="w-full px-4 py-2 border rounded-lg" />
+            <input
+              name="avatar"
+              type="file"
+              accept="image/*"
+              className="w-full px-4 py-2 border rounded-lg"
+            />
 
-            <select name="bloodGroup" required className="w-full px-4 py-3 border rounded-lg">
+            <select
+              name="bloodGroup"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            >
               <option value="">Blood Group</option>
               {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg => (
                 <option key={bg}>{bg}</option>
@@ -136,11 +156,17 @@ const Registration = () => {
             >
               <option value="">District</option>
               {districts.map(d => (
-                <option key={d.id} value={d.id}>{d.name}</option>
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
               ))}
             </select>
 
-            <select name="upazila" required className="w-full px-4 py-3 border rounded-lg">
+            <select
+              name="upazila"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            >
               <option value="">Upazila</option>
               {upazilas
                 .filter(u => u.district_id === selectedDistrictId)
@@ -149,9 +175,21 @@ const Registration = () => {
                 ))}
             </select>
 
-            <input name="password" type="password" placeholder="Password" required className="w-full px-4 py-3 border rounded-lg" />
+            <input
+              name="password"
+              type="password"
+              placeholder="Password"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            />
 
-            <input name="confirmPassword" type="password" placeholder="Confirm Password" required className="w-full px-4 py-3 border rounded-lg" />
+            <input
+              name="confirmPassword"
+              type="password"
+              placeholder="Confirm Password"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            />
 
             <button
               type="submit"
