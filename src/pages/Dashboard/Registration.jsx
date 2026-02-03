@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import useAuth from "../../hooks/useAuth";
-import Spinner from "../../components/Spinner/Spinner";
+import LoadingSpinner from "../../components/comon/LoadingSpinner";
+
+const Spinner = LoadingSpinner;
 
 const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Registration = () => {
   const { createUser, updateUserProfile } = useAuth();
-  const navigate = useNavigate();
 
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
@@ -79,9 +80,11 @@ const Registration = () => {
         }
       }
 
+      // 🔥 Firebase creates user AND auto-login
       await createUser(email, password);
       await updateUserProfile(name, avatarUrl);
 
+      // Save user in DB
       await axios.post(`${API_URL}/users`, {
         name,
         email,
@@ -93,8 +96,9 @@ const Registration = () => {
         status: "active",
       });
 
-      toast.success("Registration successful 🎉");
-      navigate("/", { replace: true });
+      
+      toast.success("Registration successful");
+
     } catch (error) {
       toast.error(
         error?.response?.data?.message || "Registration failed"
@@ -104,119 +108,119 @@ const Registration = () => {
     }
   };
 
-  if (loading) {
-    return <Spinner />;
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div
-        className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full"
-        data-aos="fade-up"
-      >
-        <h2 className="text-2xl font-bold text-center mb-8">
-          Register
-        </h2>
+    <>
+      {loading && <Spinner />}
 
-        <form onSubmit={handleRegister} className="space-y-4">
-          <input
-            name="name"
-            type="text"
-            placeholder="Name"
-            required
-            className="w-full px-4 py-3 border rounded-lg"
-          />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div
+          className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full"
+          data-aos="fade-up"
+        >
+          <h2 className="text-2xl font-bold text-center mb-8">
+            Register
+          </h2>
 
-          <input
-            name="email"
-            type="email"
-            placeholder="Email"
-            required
-            className="w-full px-4 py-3 border rounded-lg"
-          />
+          <form onSubmit={handleRegister} className="space-y-4">
+            <input
+              name="name"
+              type="text"
+              placeholder="Name"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            />
 
-          <input
-            name="avatar"
-            type="file"
-            accept="image/*"
-            className="w-full px-4 py-3 border rounded-lg"
-          />
+            <input
+              name="email"
+              type="email"
+              placeholder="Email"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            />
 
-          <select
-            name="bloodGroup"
-            required
-            className="w-full px-4 py-3 border rounded-lg"
-          >
-            <option value="">Blood Group</option>
-            {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map((bg) => (
-              <option key={bg} value={bg}>{bg}</option>
-            ))}
-          </select>
+            <input
+              name="avatar"
+              type="file"
+              accept="image/*"
+              className="w-full px-4 py-3 border rounded-lg"
+            />
 
-          <select
-            name="district"
-            required
-            onChange={(e) => {
-              setSelectedDistrictId(Number(e.target.value));
-              e.target.form.upazila.value = "";
-            }}
-            className="w-full px-4 py-3 border rounded-lg"
-          >
-            <option value="">District</option>
-            {districts.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
+            <select
+              name="bloodGroup"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            >
+              <option value="">Blood Group</option>
+              {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map((bg) => (
+                <option key={bg} value={bg}>{bg}</option>
+              ))}
+            </select>
 
-          <select
-            name="upazila"
-            required
-            className="w-full px-4 py-3 border rounded-lg"
-          >
-            <option value="">Upazila</option>
-            {upazilas
-              .filter((u) => u.district_id === selectedDistrictId)
-              .map((u) => (
-                <option key={u.id} value={u.name}>
-                  {u.name}
+            <select
+              name="district"
+              required
+              onChange={(e) => {
+                setSelectedDistrictId(Number(e.target.value));
+                e.target.form.upazila.value = "";
+              }}
+              className="w-full px-4 py-3 border rounded-lg"
+            >
+              <option value="">District</option>
+              {districts.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
                 </option>
               ))}
-          </select>
+            </select>
 
-          <input
-            name="password"
-            type="password"
-            placeholder="Password"
-            required
-            className="w-full px-4 py-3 border rounded-lg"
-          />
+            <select
+              name="upazila"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            >
+              <option value="">Upazila</option>
+              {upazilas
+                .filter((u) => u.district_id === selectedDistrictId)
+                .map((u) => (
+                  <option key={u.id} value={u.name}>
+                    {u.name}
+                  </option>
+                ))}
+            </select>
 
-          <input
-            name="confirm_password"
-            type="password"
-            placeholder="Confirm Password"
-            required
-            className="w-full px-4 py-3 border rounded-lg"
-          />
+            <input
+              name="password"
+              type="password"
+              placeholder="Password"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            />
 
-          <button
-            type="submit"
-            className="w-full bg-red-600 text-white py-3 rounded-lg"
-          >
-            Register
-          </button>
-        </form>
+            <input
+              name="confirm_password"
+              type="password"
+              placeholder="Confirm Password"
+              required
+              className="w-full px-4 py-3 border rounded-lg"
+            />
 
-        <p className="mt-6 text-center">
-          Already have an account?{" "}
-          <Link to="/login" className="text-red-600 font-semibold">
-            Login
-          </Link>
-        </p>
+            <button
+              type="submit"
+              className="w-full bg-red-600 text-white py-3 rounded-lg"
+            >
+              Register
+            </button>
+          </form>
+
+          <p className="mt-6 text-center">
+            Already have an account?{" "}
+            <Link to="/login" className="text-red-600 font-semibold">
+              Login
+            </Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
