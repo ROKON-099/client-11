@@ -11,6 +11,7 @@ const Profile = () => {
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedDistrictId, setSelectedDistrictId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   /* ---------------- Fetch Profile ---------------- */
@@ -34,8 +35,14 @@ const Profile = () => {
           fetch("/Upzila.json"),
         ]);
 
-        setDistricts(await districtRes.json());
+        const districtData = await districtRes.json();
+        setDistricts(districtData);
         setUpazilas(await upazilaRes.json());
+
+        const matched = districtData.find(
+          (d) => d.name === profile?.district
+        );
+        setSelectedDistrictId(matched?.id || null);
       } catch {
         toast.error("Failed to load profile data");
       } finally {
@@ -44,7 +51,7 @@ const Profile = () => {
     };
 
     fetchData();
-  }, [user]);
+  }, [user, profile?.district]);
 
   /* ---------------- Handlers ---------------- */
   const handleChange = (e) => {
@@ -154,7 +161,14 @@ const Profile = () => {
               <select
                 value={selectedDistrict}
                 onChange={(e) => {
-                  setSelectedDistrict(e.target.value);
+                  const districtName = e.target.value;
+                  setSelectedDistrict(districtName);
+
+                  const matched = districts.find(
+                    (d) => d.name === districtName
+                  );
+                  setSelectedDistrictId(matched?.id || null);
+
                   setProfile((p) => ({ ...p, upazila: "" }));
                 }}
                 className="w-full mt-1 px-4 py-2.5 border rounded-lg"
@@ -180,7 +194,7 @@ const Profile = () => {
               >
                 <option value="">Select Upazila</option>
                 {upazilas
-                  .filter((u) => u.district === selectedDistrict)
+                  .filter((u) => u.district_id === selectedDistrictId)
                   .map((u) => (
                     <option key={u.id} value={u.name}>
                       {u.name}
@@ -237,5 +251,4 @@ const Input = ({ label, ...props }) => (
       }`}
     />
   </div>
-); 
-
+);
