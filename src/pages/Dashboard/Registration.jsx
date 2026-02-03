@@ -37,7 +37,7 @@ const Registration = () => {
     const name = form.name.value.trim();
     const email = form.email.value.trim().toLowerCase();
     const password = form.password.value;
-    const confirmPassword = form.confirm_password.value;
+    const confirmPassword = form.confirmPassword.value;
     const imageFile = form.avatar.files[0];
     const bloodGroup = form.bloodGroup.value;
     const districtId = Number(form.district.value);
@@ -59,11 +59,11 @@ const Registration = () => {
     try {
       setLoading(true);
 
-      // 🔥 avatar default
+      // default avatar
       let avatarUrl =
         "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-      // 🔥 upload to imgbb if image selected
+      // upload avatar (optional)
       if (imageFile && imageBBKey) {
         const imageFormData = new FormData();
         imageFormData.append("image", imageFile);
@@ -76,10 +76,10 @@ const Registration = () => {
         avatarUrl = imgRes.data.data.display_url;
       }
 
-      // ✅ Firebase register (AUTO LOGIN)
+      // 🔥 Firebase register (AUTO LOGIN)
       await createUser(email, password);
 
-      // ✅ Save user in DB with avatar
+      // 🔥 Save user in DB (avatar from user)
       await axios.post(`${API_URL}/users`, {
         name,
         email,
@@ -92,10 +92,9 @@ const Registration = () => {
       });
 
       toast.success("Registration successful 🎉");
-
-      // ❌ no navigate needed — auto login handled by AuthProvider
+      // ❌ no navigate — auto login handled globally
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Registration failed");
+      toast.error(error?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -154,7 +153,7 @@ const Registration = () => {
               required
               onChange={(e) => {
                 setSelectedDistrictId(Number(e.target.value));
-                e.target.form.upazila.value = "";
+                form.upazila.value = "";
               }}
               className="w-full px-4 py-3 border rounded-lg"
             >
@@ -188,7 +187,7 @@ const Registration = () => {
             />
 
             <input
-              name="confirm_password"
+              name="confirmPassword"
               type="password"
               placeholder="Confirm Password"
               required
@@ -197,9 +196,10 @@ const Registration = () => {
 
             <button
               type="submit"
+              disabled={loading}
               className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition"
             >
-              Register
+              {loading ? "Registering..." : "Register"}
             </button>
           </form>
 
