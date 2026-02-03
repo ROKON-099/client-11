@@ -44,7 +44,7 @@ const AuthProvider = ({ children }) => {
     });
   };
 
-  // Auth observer
+  // Auth observer (🔥 AUTO LOGIN HANDLED HERE)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -58,7 +58,6 @@ const AuthProvider = ({ children }) => {
           localStorage.setItem("token", res.data.token);
         } catch (error) {
           console.error("JWT error", error);
-          // If JWT fails (user not in DB), log out the user
           await signOut(auth);
           localStorage.removeItem("token");
           setUser(null);

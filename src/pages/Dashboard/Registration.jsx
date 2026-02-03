@@ -5,6 +5,7 @@ import axios from "axios";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import useAuth from "../../hooks/useAuth";
+import Spinner from "../../components/Spinner/Spinner";
 
 const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
 const API_URL = import.meta.env.VITE_API_URL;
@@ -35,7 +36,7 @@ const Registration = () => {
     const form = e.target;
 
     const name = form.name.value.trim();
-    const email = form.email.value.trim();
+    const email = form.email.value.trim().toLowerCase();
     const password = form.password.value;
     const confirmPassword = form.confirm_password.value;
     const imageFile = form.avatar.files[0];
@@ -59,7 +60,8 @@ const Registration = () => {
     try {
       setLoading(true);
 
-      let avatarUrl = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+      let avatarUrl =
+        "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
       if (imageFile && imageBBKey) {
         try {
@@ -91,13 +93,8 @@ const Registration = () => {
         status: "active",
       });
 
-      const jwtRes = await axios.post(`${API_URL}/jwt`, { email });
-      if (jwtRes?.data?.token) {
-        localStorage.setItem("access-token", jwtRes.data.token);
-      }
-
       toast.success("Registration successful 🎉");
-      navigate("/");
+      navigate("/", { replace: true });
     } catch (error) {
       toast.error(
         error?.response?.data?.message || "Registration failed"
@@ -106,6 +103,10 @@ const Registration = () => {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -202,10 +203,9 @@ const Registration = () => {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-red-600 text-white py-3 rounded-lg disabled:opacity-70"
+            className="w-full bg-red-600 text-white py-3 rounded-lg"
           >
-            {loading ? "Registering..." : "Register"}
+            Register
           </button>
         </form>
 
