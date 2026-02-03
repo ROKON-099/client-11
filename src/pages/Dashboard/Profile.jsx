@@ -3,6 +3,8 @@ import axiosSecure from "../../hooks/axiosSecure";
 import useAuth from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
 import toast from "react-hot-toast";
+import { updateProfile } from "firebase/auth";
+import { auth } from "../../firebase/firebase.config";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -62,12 +64,21 @@ const Profile = () => {
         avatar: profile.avatar,
       };
 
+      // ✅ Update DB
       await axiosSecure.patch(
         `/users/${user.email.toLowerCase()}`,
         updateData
       );
 
-      await fetchProfile(); // 🔥 refresh profile after save
+      // 🔥 Sync Firebase photoURL (THIS WAS MISSING)
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, {
+          displayName: profile.name,
+          photoURL: profile.avatar,
+        });
+      }
+
+      await fetchProfile(); // refresh UI
       toast.success("Profile updated successfully");
     } catch {
       toast.error("Failed to update profile");
@@ -92,7 +103,6 @@ const Profile = () => {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-5xl mx-auto">
 
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-semibold text-gray-800">
             My Profile
@@ -102,11 +112,9 @@ const Profile = () => {
           </p>
         </div>
 
-        {/* Profile Card */}
         <div className="bg-white rounded-2xl shadow-sm border p-6 md:p-10">
 
-          {/* Top Section */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-10">
+          <div className="flex flex-col sm:flex-row items-center gap-6 mb-10">
             <img
               src={
                 profile?.avatar ||
@@ -116,7 +124,7 @@ const Profile = () => {
               className="w-28 h-28 rounded-full object-cover ring-2 ring-rose-200"
             />
 
-            <div className="text-center sm:text-left">
+            <div>
               <h2 className="text-2xl font-medium text-gray-800">
                 {profile.name || "User Name"}
               </h2>
@@ -132,9 +140,7 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Form */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
             <Input
               label="Full Name"
               name="name"
@@ -148,7 +154,6 @@ const Profile = () => {
               disabled
             />
 
-            {/* District */}
             <div>
               <label className="text-sm font-medium text-gray-600">
                 District
@@ -159,7 +164,7 @@ const Profile = () => {
                   setSelectedDistrict(e.target.value);
                   setProfile((p) => ({ ...p, upazila: "" }));
                 }}
-                className="w-full mt-1 px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-rose-300"
+                className="w-full mt-1 px-4 py-2.5 border rounded-lg"
               >
                 <option value="">Select District</option>
                 {districts.map((d) => (
@@ -170,7 +175,6 @@ const Profile = () => {
               </select>
             </div>
 
-            {/* Upazila */}
             <div>
               <label className="text-sm font-medium text-gray-600">
                 Upazila
@@ -179,7 +183,7 @@ const Profile = () => {
                 name="upazila"
                 value={profile.upazila || ""}
                 onChange={handleChange}
-                className="w-full mt-1 px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-rose-300"
+                className="w-full mt-1 px-4 py-2.5 border rounded-lg"
               >
                 <option value="">Select Upazila</option>
                 {upazilas
@@ -192,7 +196,6 @@ const Profile = () => {
               </select>
             </div>
 
-            {/* Blood Group */}
             <div>
               <label className="text-sm font-medium text-gray-600">
                 Blood Group
@@ -201,7 +204,7 @@ const Profile = () => {
                 name="bloodGroup"
                 value={profile.bloodGroup || ""}
                 onChange={handleChange}
-                className="w-full mt-1 px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-rose-300"
+                className="w-full mt-1 px-4 py-2.5 border rounded-lg"
               >
                 <option value="">Select Blood Group</option>
                 {["A+","A-","B+","B-","O+","O-","AB+","AB-"].map(bg => (
@@ -211,11 +214,10 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* Save Button */}
           <div className="mt-10 flex justify-end">
             <button
               onClick={handleSave}
-              className="px-8 py-2.5 rounded-lg bg-rose-500 text-white font-medium hover:bg-rose-600 transition"
+              className="px-8 py-2.5 rounded-lg bg-rose-500 text-white font-medium hover:bg-rose-600"
             >
               Save Changes
             </button>
@@ -237,7 +239,7 @@ const Input = ({ label, ...props }) => (
     </label>
     <input
       {...props}
-      className={`w-full mt-1 px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-rose-300 ${
+      className={`w-full mt-1 px-4 py-2.5 border rounded-lg ${
         props.disabled ? "bg-gray-100 cursor-not-allowed" : ""
       }`}
     />
