@@ -15,19 +15,25 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Register
-  const createUser = (email, password) => {
+  /* ======================
+     REGISTER
+  ====================== */
+  const createUser = async (email, password) => {
     setLoading(true);
-    return createUserWithEmailAndPassword(auth, email, password);
+    return await createUserWithEmailAndPassword(auth, email, password);
   };
 
-  // Login
-  const signIn = (email, password) => {
+  /* ======================
+     LOGIN
+  ====================== */
+  const signIn = async (email, password) => {
     setLoading(true);
-    return signInWithEmailAndPassword(auth, email, password);
+    return await signInWithEmailAndPassword(auth, email, password);
   };
 
-  // Logout
+  /* ======================
+     LOGOUT
+  ====================== */
   const logOut = async () => {
     setLoading(true);
     await signOut(auth);
@@ -36,15 +42,26 @@ const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
-  // Update profile
-  const updateUserProfile = (name, photoURL) => {
-    return updateProfile(auth.currentUser, {
+  /* ======================
+     UPDATE PROFILE (NAME + AVATAR)
+  ====================== */
+  const updateUserProfile = async (name, photoURL) => {
+    if (!auth.currentUser) return;
+
+    await updateProfile(auth.currentUser, {
       displayName: name,
       photoURL,
     });
+
+    // 🔥 Force refresh user
+    await auth.currentUser.reload();
+    setUser({ ...auth.currentUser });
   };
 
-  // Auth observer (🔥 AUTO LOGIN HANDLED HERE)
+  /* ======================
+     AUTH STATE OBSERVER
+     (AUTO LOGIN + JWT)
+  ====================== */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -55,9 +72,10 @@ const AuthProvider = ({ children }) => {
             `${import.meta.env.VITE_API_URL}/jwt`,
             { email: currentUser.email.toLowerCase() }
           );
+
           localStorage.setItem("token", res.data.token);
         } catch (error) {
-          console.error("JWT error", error);
+          console.error("JWT error:", error);
           await signOut(auth);
           localStorage.removeItem("token");
           setUser(null);

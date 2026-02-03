@@ -11,7 +11,7 @@ const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Registration = () => {
-  const { createUser } = useAuth();
+  const { createUser, updateUserProfile } = useAuth();
 
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
@@ -21,17 +21,14 @@ const Registration = () => {
   useEffect(() => {
     AOS.init({ duration: 800, once: true });
 
-    fetch("/District.json")
-      .then(res => res.json())
-      .then(setDistricts);
-
-    fetch("/Upzila.json")
-      .then(res => res.json())
-      .then(setUpazilas);
+    fetch("/District.json").then(res => res.json()).then(setDistricts);
+    fetch("/Upzila.json").then(res => res.json()).then(setUpazilas);
   }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    if (loading) return;
+
     const form = e.target;
 
     const name = form.name.value.trim();
@@ -44,26 +41,23 @@ const Registration = () => {
     const districtName = districts.find(d => d.id === districtId)?.name;
     const upazila = form.upazila.value;
 
-    if (password !== confirmPassword) {
+    if (password !== confirmPassword)
       return toast.error("Passwords do not match");
-    }
 
-    if (password.length < 6) {
+    if (password.length < 6)
       return toast.error("Password must be at least 6 characters");
-    }
 
-    if (!districtName) {
+    if (!districtName)
       return toast.error("Please select a district");
-    }
 
     try {
       setLoading(true);
 
-      // default avatar
+      // Default avatar
       let avatarUrl =
         "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-      // upload avatar (optional)
+      // Upload avatar (optional)
       if (imageFile && imageBBKey) {
         const imageFormData = new FormData();
         imageFormData.append("image", imageFile);
@@ -73,13 +67,16 @@ const Registration = () => {
           imageFormData
         );
 
-        avatarUrl = imgRes.data.data.display_url;
+        avatarUrl = imgRes?.data?.data?.display_url || avatarUrl;
       }
 
-      // 🔥 Firebase register (AUTO LOGIN)
+      // 🔥 FIREBASE REGISTER (AUTO LOGIN)
       await createUser(email, password);
 
-      // 🔥 Save user in DB (avatar from user)
+      // 🔥 UPDATE FIREBASE PROFILE (AVATAR + NAME)
+      await updateUserProfile(name, avatarUrl);
+
+      // 🔥 SAVE USER IN DATABASE
       await axios.post(`${API_URL}/users`, {
         name,
         email,
@@ -92,7 +89,8 @@ const Registration = () => {
       });
 
       toast.success("Registration successful 🎉");
-      // ❌ no navigate — auto login handled globally
+
+      form.reset();
     } catch (error) {
       toast.error(error?.message || "Registration failed");
     } finally {
@@ -114,34 +112,13 @@ const Registration = () => {
           </h2>
 
           <form onSubmit={handleRegister} className="space-y-4">
-            <input
-              name="name"
-              type="text"
-              placeholder="Full Name"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            />
+            <input name="name" type="text" placeholder="Full Name" required className="w-full px-4 py-3 border rounded-lg" />
 
-            <input
-              name="email"
-              type="email"
-              placeholder="Email Address"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            />
+            <input name="email" type="email" placeholder="Email Address" required className="w-full px-4 py-3 border rounded-lg" />
 
-            <input
-              name="avatar"
-              type="file"
-              accept="image/*"
-              className="w-full px-4 py-2 border rounded-lg"
-            />
+            <input name="avatar" type="file" accept="image/*" className="w-full px-4 py-2 border rounded-lg" />
 
-            <select
-              name="bloodGroup"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            >
+            <select name="bloodGroup" required className="w-full px-4 py-3 border rounded-lg">
               <option value="">Blood Group</option>
               {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg => (
                 <option key={bg}>{bg}</option>
@@ -153,23 +130,17 @@ const Registration = () => {
               required
               onChange={(e) => {
                 setSelectedDistrictId(Number(e.target.value));
-                form.upazila.value = "";
+                e.target.form.upazila.value = "";
               }}
               className="w-full px-4 py-3 border rounded-lg"
             >
               <option value="">District</option>
               {districts.map(d => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
+                <option key={d.id} value={d.id}>{d.name}</option>
               ))}
             </select>
 
-            <select
-              name="upazila"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            >
+            <select name="upazila" required className="w-full px-4 py-3 border rounded-lg">
               <option value="">Upazila</option>
               {upazilas
                 .filter(u => u.district_id === selectedDistrictId)
@@ -178,21 +149,9 @@ const Registration = () => {
                 ))}
             </select>
 
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            />
+            <input name="password" type="password" placeholder="Password" required className="w-full px-4 py-3 border rounded-lg" />
 
-            <input
-              name="confirmPassword"
-              type="password"
-              placeholder="Confirm Password"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            />
+            <input name="confirmPassword" type="password" placeholder="Confirm Password" required className="w-full px-4 py-3 border rounded-lg" />
 
             <button
               type="submit"
@@ -216,5 +175,3 @@ const Registration = () => {
 };
 
 export default Registration;
-
-
