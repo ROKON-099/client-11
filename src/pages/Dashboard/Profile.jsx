@@ -61,7 +61,7 @@ const Profile = () => {
         bloodGroup: profile.bloodGroup,
         district: selectedDistrict,
         upazila: profile.upazila,
-        avatar: profile.avatar,
+        avatar: profile.avatar, // ✅ DB avatar
       };
 
       // ✅ Update DB
@@ -70,7 +70,7 @@ const Profile = () => {
         updateData
       );
 
-      // 🔥 Sync Firebase photoURL (THIS WAS MISSING)
+      // ✅ Sync Firebase profile (for navbar fallback)
       if (auth.currentUser) {
         await updateProfile(auth.currentUser, {
           displayName: profile.name,
