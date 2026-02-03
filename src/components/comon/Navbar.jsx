@@ -54,10 +54,16 @@ const Navbar = () => {
             ) : (
               <div className="relative group">
                 <img
-                  src={user.photoURL || "https://i.ibb.co/4pDNDk1/avatar.png"}
-                  alt="user"
-                  className="w-10 h-10 rounded-full cursor-pointer border"
-                />
+  key={user?.photoURL || "default"}
+  src={
+    user && user.photoURL
+      ? user.photoURL
+      : "https://i.ibb.co/4pDNDk1/avatar.png"
+  }
+  alt="user"
+  className="w-10 h-10 rounded-full cursor-pointer border object-cover"
+/>
+
 
                 {/* Dropdown */}
                 <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all">
