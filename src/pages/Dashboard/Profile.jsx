@@ -3,6 +3,11 @@ import axiosSecure from "../../hooks/axiosSecure";
 import useAuth from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
 import toast from "react-hot-toast";
+import axios from "axios";
+
+const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
+const DEFAULT_AVATAR =
+  "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
 const Profile = () => {
   const { user, updateUserProfile } = useAuth();
@@ -11,14 +16,14 @@ const Profile = () => {
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [selectedDistrictId, setSelectedDistrictId] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   /* ---------------- Fetch Profile ---------------- */
   const fetchProfile = async () => {
     if (!user?.email) return;
-    const res = await axiosSecure.get(
-      `/users/${user.email.toLowerCase()}`
-    );
+    const res = await axiosSecure.get(`/users/${user.email.toLowerCase()}`);
     setProfile(res.data);
     setSelectedDistrict(res.data?.district || "");
   };
@@ -34,8 +39,15 @@ const Profile = () => {
           fetch("/Upzila.json"),
         ]);
 
-        setDistricts(await districtRes.json());
+        const districtData = await districtRes.json();
+        setDistricts(districtData);
         setUpazilas(await upazilaRes.json());
+
+        // 🔥 map district name → id
+        const matched = districtData.find(
+          (d) => d.name === profile?.district
+        );
+        setSelectedDistrictId(matched?.id || null);
       } catch {
         toast.error("Failed to load profile data");
       } finally {
@@ -44,7 +56,7 @@ const Profile = () => {
     };
 
     fetchData();
-  }, [user]);
+  }, [user, profile?.district]);
 
   /* ---------------- Handlers ---------------- */
   const handleChange = (e) => {
@@ -52,14 +64,33 @@ const Profile = () => {
     setProfile((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageChange = (e) => {
+    setAvatarFile(e.target.files[0]);
+  };
+
   const handleSave = async () => {
     try {
+      let avatarUrl = profile.avatar || DEFAULT_AVATAR;
+
+      // 🔥 Upload new avatar if selected
+      if (avatarFile && imageBBKey) {
+        const formData = new FormData();
+        formData.append("image", avatarFile);
+
+        const imgRes = await axios.post(
+          `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
+          formData
+        );
+
+        avatarUrl = imgRes?.data?.data?.display_url || avatarUrl;
+      }
+
       const updateData = {
         name: profile.name,
         bloodGroup: profile.bloodGroup,
         district: selectedDistrict,
         upazila: profile.upazila,
-        avatar: profile.avatar,
+        avatar: avatarUrl,
       };
 
       // ✅ Update DB
@@ -68,8 +99,8 @@ const Profile = () => {
         updateData
       );
 
-      // ✅ Update Firebase + Context sync
-      await updateUserProfile(profile.name, profile.avatar);
+      // ✅ Update Firebase
+      await updateUserProfile(profile.name, avatarUrl);
 
       await fetchProfile();
       toast.success("Profile updated successfully");
@@ -80,59 +111,30 @@ const Profile = () => {
 
   if (isLoading) return <LoadingSpinner />;
 
-  /* ---------- DONOR ONLY ACCESS ---------- */
-  if (profile?.role !== "donor") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <h2 className="text-lg font-semibold text-gray-500">
-          This page is only available for donors.
-        </h2>
-      </div>
-    );
-  }
-
   /* ---------------- UI ---------------- */
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-5xl mx-auto">
 
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-semibold text-gray-800">
-            My Profile
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage your personal information
-          </p>
-        </div>
-
         <div className="bg-white rounded-2xl shadow-sm border p-6 md:p-10">
 
+          {/* Avatar */}
           <div className="flex flex-col sm:flex-row items-center gap-6 mb-10">
             <img
-              src={
-                profile?.avatar ||
-                "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-              }
+              src={profile?.avatar || DEFAULT_AVATAR}
               alt="profile"
               className="w-28 h-28 rounded-full object-cover ring-2 ring-rose-200"
             />
 
-            <div>
-              <h2 className="text-2xl font-medium text-gray-800">
-                {profile.name || "User Name"}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Blood Group:{" "}
-                <span className="font-semibold text-rose-500">
-                  {profile.bloodGroup || "N/A"}
-                </span>
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                {profile.email}
-              </p>
-            </div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="text-sm"
+            />
           </div>
 
+          {/* Form */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               label="Full Name"
@@ -154,7 +156,12 @@ const Profile = () => {
               <select
                 value={selectedDistrict}
                 onChange={(e) => {
-                  setSelectedDistrict(e.target.value);
+                  const value = e.target.value;
+                  setSelectedDistrict(value);
+
+                  const match = districts.find(d => d.name === value);
+                  setSelectedDistrictId(match?.id || null);
+
                   setProfile((p) => ({ ...p, upazila: "" }));
                 }}
                 className="w-full mt-1 px-4 py-2.5 border rounded-lg"
@@ -180,7 +187,7 @@ const Profile = () => {
               >
                 <option value="">Select Upazila</option>
                 {upazilas
-                  .filter((u) => u.district === selectedDistrict)
+                  .filter((u) => u.district_id === selectedDistrictId)
                   .map((u) => (
                     <option key={u.id} value={u.name}>
                       {u.name}
@@ -227,9 +234,7 @@ export default Profile;
 /* ---------------- Reusable Input ---------------- */
 const Input = ({ label, ...props }) => (
   <div>
-    <label className="text-sm font-medium text-gray-600">
-      {label}
-    </label>
+    <label className="text-sm font-medium text-gray-600">{label}</label>
     <input
       {...props}
       className={`w-full mt-1 px-4 py-2.5 border rounded-lg ${
@@ -238,4 +243,3 @@ const Input = ({ label, ...props }) => (
     />
   </div>
 );
-
