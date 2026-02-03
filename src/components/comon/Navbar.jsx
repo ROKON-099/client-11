@@ -1,7 +1,8 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
+import axiosSecure from "../../hooks/axiosSecure";
 import logo from "../../assets/Logo.png";
 
 const DEFAULT_AVATAR =
@@ -10,7 +11,20 @@ const DEFAULT_AVATAR =
 const Navbar = () => {
   const { user, logOut } = useAuth();
   const [open, setOpen] = useState(false);
+  const [dbUser, setDbUser] = useState(null);
   const navigate = useNavigate();
+
+  // 🔥 Fetch user from DB (avatar comes from DB)
+  useEffect(() => {
+    if (user?.email) {
+      axiosSecure
+        .get(`/users/${user.email.toLowerCase()}`)
+        .then((res) => setDbUser(res.data))
+        .catch(() => setDbUser(null));
+    } else {
+      setDbUser(null);
+    }
+  }, [user]);
 
   const handleLogout = async () => {
     await logOut();
@@ -57,7 +71,7 @@ const Navbar = () => {
             ) : (
               <div className="relative group">
                 <img
-                  src={user.photoURL || DEFAULT_AVATAR}
+                  src={dbUser?.avatar || DEFAULT_AVATAR}
                   alt="user"
                   className="w-10 h-10 rounded-full cursor-pointer border object-cover"
                 />
