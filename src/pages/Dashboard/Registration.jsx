@@ -6,6 +6,8 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import useAuth from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
+import { updateProfile } from "firebase/auth";
+import { auth } from "../../firebase/firebase.config";
 
 const Spinner = LoadingSpinner;
 
@@ -13,7 +15,7 @@ const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Registration = () => {
-  const { createUser, updateUserProfile } = useAuth();
+  const { createUser } = useAuth();
 
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
@@ -65,26 +67,19 @@ const Registration = () => {
         "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
       if (imageFile && imageBBKey) {
-        try {
-          const imageFormData = new FormData();
-          imageFormData.append("image", imageFile);
+        const imageFormData = new FormData();
+        imageFormData.append("image", imageFile);
 
-          const imageRes = await axios.post(
-            `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
-            imageFormData
-          );
+        const imageRes = await axios.post(
+          `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
+          imageFormData
+        );
 
-          avatarUrl = imageRes.data.data.display_url;
-        } catch {
-          toast.error("Image upload failed. Using default avatar.");
-        }
+        avatarUrl = imageRes.data.data.display_url;
       }
 
-      // ✅ Firebase create + AUTO LOGIN
+      // ✅ Firebase create (auto login)
       await createUser(email, password);
-
-      // ✅ Safe wrapper (does NOT break auth state)
-      await updateUserProfile(name, avatarUrl);
 
       // ✅ Save user to DB
       await axios.post(`${API_URL}/users`, {
@@ -97,6 +92,16 @@ const Registration = () => {
         role: "donor",
         status: "active",
       });
+
+      // 🔥 SAFE AUTO PHOTOURL SET (DELAYED)
+      setTimeout(async () => {
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, {
+            displayName: name,
+            photoURL: avatarUrl,
+          });
+        }
+      }, 1200);
 
       toast.success("Registration successful");
 
@@ -114,101 +119,39 @@ const Registration = () => {
       {loading && <Spinner />}
 
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div
-          className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full"
-          data-aos="fade-up"
-        >
+        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
           <h2 className="text-2xl font-bold text-center mb-8">
             Register
           </h2>
 
           <form onSubmit={handleRegister} className="space-y-4">
-            <input
-              name="name"
-              type="text"
-              placeholder="Name"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            />
+            <input name="name" placeholder="Name" required className="w-full px-4 py-3 border rounded-lg" />
+            <input name="email" type="email" placeholder="Email" required className="w-full px-4 py-3 border rounded-lg" />
+            <input name="avatar" type="file" accept="image/*" className="w-full px-4 py-3 border rounded-lg" />
 
-            <input
-              name="email"
-              type="email"
-              placeholder="Email"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            />
-
-            <input
-              name="avatar"
-              type="file"
-              accept="image/*"
-              className="w-full px-4 py-3 border rounded-lg"
-            />
-
-            <select
-              name="bloodGroup"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            >
+            <select name="bloodGroup" required className="w-full px-4 py-3 border rounded-lg">
               <option value="">Blood Group</option>
-              {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map((bg) => (
-                <option key={bg} value={bg}>{bg}</option>
+              {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg => (
+                <option key={bg}>{bg}</option>
               ))}
             </select>
 
-            <select
-              name="district"
-              required
-              onChange={(e) => {
-                setSelectedDistrictId(Number(e.target.value));
-                e.target.form.upazila.value = "";
-              }}
-              className="w-full px-4 py-3 border rounded-lg"
-            >
+            <select name="district" required onChange={(e)=>setSelectedDistrictId(+e.target.value)} className="w-full px-4 py-3 border rounded-lg">
               <option value="">District</option>
-              {districts.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
+              {districts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+
+            <select name="upazila" required className="w-full px-4 py-3 border rounded-lg">
+              <option value="">Upazila</option>
+              {upazilas.filter(u=>u.district_id===selectedDistrictId).map(u=>(
+                <option key={u.id}>{u.name}</option>
               ))}
             </select>
 
-            <select
-              name="upazila"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            >
-              <option value="">Upazila</option>
-              {upazilas
-                .filter((u) => u.district_id === selectedDistrictId)
-                .map((u) => (
-                  <option key={u.id} value={u.name}>
-                    {u.name}
-                  </option>
-                ))}
-            </select>
+            <input name="password" type="password" placeholder="Password" required className="w-full px-4 py-3 border rounded-lg" />
+            <input name="confirm_password" type="password" placeholder="Confirm Password" required className="w-full px-4 py-3 border rounded-lg" />
 
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            />
-
-            <input
-              name="confirm_password"
-              type="password"
-              placeholder="Confirm Password"
-              required
-              className="w-full px-4 py-3 border rounded-lg"
-            />
-
-            <button
-              type="submit"
-              className="w-full bg-red-600 text-white py-3 rounded-lg"
-            >
+            <button className="w-full bg-red-600 text-white py-3 rounded-lg">
               Register
             </button>
           </form>
