@@ -13,17 +13,21 @@ const Profile = () => {
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
+  /* ---------------- Fetch Profile ---------------- */
+  const fetchProfile = async () => {
+    if (!user?.email) return;
+    const res = await axiosSecure.get(
+      `/users/${user.email.toLowerCase()}`
+    );
+    setProfile(res.data);
+    setSelectedDistrict(res.data?.district || "");
+  };
+
   /* ---------------- Fetch Data ---------------- */
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (user?.email) {
-          const res = await axiosSecure.get(
-            `/users/${user.email.toLowerCase()}`
-          );
-          setProfile(res.data);
-          setSelectedDistrict(res.data?.district || "");
-        }
+        await fetchProfile();
 
         const [districtRes, upazilaRes] = await Promise.all([
           fetch("/District.json"),
@@ -58,7 +62,12 @@ const Profile = () => {
         avatar: profile.avatar,
       };
 
-      await axiosSecure.patch(`/users/${user.email}`, updateData);
+      await axiosSecure.patch(
+        `/users/${user.email.toLowerCase()}`,
+        updateData
+      );
+
+      await fetchProfile(); // 🔥 refresh profile after save
       toast.success("Profile updated successfully");
     } catch {
       toast.error("Failed to update profile");
@@ -98,16 +107,14 @@ const Profile = () => {
 
           {/* Top Section */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-10">
-           <img
-  src={
-    profile?.avatar
-      ? profile.avatar
-      : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-  }
-  alt="profile"
-  className="w-28 h-28 rounded-full object-cover ring-2 ring-rose-200"
-/>
-
+            <img
+              src={
+                profile?.avatar ||
+                "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+              }
+              alt="profile"
+              className="w-28 h-28 rounded-full object-cover ring-2 ring-rose-200"
+            />
 
             <div className="text-center sm:text-left">
               <h2 className="text-2xl font-medium text-gray-800">
