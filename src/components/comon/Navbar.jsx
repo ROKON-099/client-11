@@ -1,27 +1,16 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import useAuth from "../../hooks/useAuth";
-import axiosSecure from "../../hooks/axiosSecure";
 import logo from "../../assets/Logo.png";
 
-const DEFAULT_AVATAR = "https://i.ibb.co/4pDNDk1/avatar.png";
+const DEFAULT_AVATAR =
+  "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
 const Navbar = () => {
   const { user, logOut } = useAuth();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
-
-  // 🔥 Fetch user from DB (avatar source of truth)
-  const { data: dbUser } = useQuery({
-    queryKey: ["dbUser", user?.email],
-    enabled: !!user?.email,
-    queryFn: async () => {
-      const res = await axiosSecure.get(`/users/${user.email}`);
-      return res.data;
-    },
-  });
 
   const handleLogout = async () => {
     await logOut();
@@ -68,7 +57,7 @@ const Navbar = () => {
             ) : (
               <div className="relative group">
                 <img
-                  src={dbUser?.avatar || DEFAULT_AVATAR}
+                  src={user.photoURL || DEFAULT_AVATAR}
                   alt="user"
                   className="w-10 h-10 rounded-full cursor-pointer border object-cover"
                 />
