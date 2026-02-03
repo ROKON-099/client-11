@@ -80,11 +80,13 @@ const Registration = () => {
         }
       }
 
-      // 🔥 Firebase creates user AND auto-login
+      // ✅ Firebase create + AUTO LOGIN
       await createUser(email, password);
+
+      // ✅ Safe wrapper (does NOT break auth state)
       await updateUserProfile(name, avatarUrl);
 
-      // Save user in DB
+      // ✅ Save user to DB
       await axios.post(`${API_URL}/users`, {
         name,
         email,
@@ -96,7 +98,6 @@ const Registration = () => {
         status: "active",
       });
 
-      
       toast.success("Registration successful");
 
     } catch (error) {
