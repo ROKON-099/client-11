@@ -9,8 +9,6 @@ import LoadingSpinner from "../../components/comon/LoadingSpinner";
 import { updateProfile } from "firebase/auth";
 import { auth } from "../../firebase/firebase.config";
 
-const Spinner = LoadingSpinner;
-
 const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -23,14 +21,14 @@ const Registration = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    AOS.init({ duration: 1000, once: true });
+    AOS.init({ duration: 800, once: true });
 
     fetch("/District.json")
-      .then((res) => res.json())
+      .then(res => res.json())
       .then(setDistricts);
 
     fetch("/Upzila.json")
-      .then((res) => res.json())
+      .then(res => res.json())
       .then(setUpazilas);
   }, []);
 
@@ -45,43 +43,50 @@ const Registration = () => {
     const imageFile = form.avatar.files[0];
     const bloodGroup = form.bloodGroup.value;
     const districtId = Number(form.district.value);
-    const districtName = districts.find((d) => d.id === districtId)?.name;
+    const districtName = districts.find(d => d.id === districtId)?.name;
     const upazila = form.upazila.value;
 
-    if (password !== confirmPassword) {
+    if (password !== confirmPassword)
       return toast.error("Passwords do not match");
-    }
 
-    if (password.length < 6) {
+    if (password.length < 6)
       return toast.error("Password must be at least 6 characters");
-    }
 
-    if (!districtName) {
+    if (!districtName)
       return toast.error("Please select a district");
-    }
 
     try {
       setLoading(true);
 
+      // 1️⃣ Upload image
       let avatarUrl =
         "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
       if (imageFile && imageBBKey) {
-        const imageFormData = new FormData();
-        imageFormData.append("image", imageFile);
+        const fd = new FormData();
+        fd.append("image", imageFile);
 
-        const imageRes = await axios.post(
+        const imgRes = await axios.post(
           `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
-          imageFormData
+          fd
         );
 
-        avatarUrl = imageRes.data.data.display_url;
+        avatarUrl = imgRes.data.data.display_url.replace(
+          "i.ibb.co.com",
+          "i.ibb.co"
+        );
       }
 
-      // ✅ Firebase create (auto login)
-      await createUser(email, password);
+      // 2️⃣ Firebase create user (AUTO LOGIN happens here)
+      const result = await createUser(email, password);
 
-      // ✅ Save user to DB
+      // 3️⃣ Immediately set Firebase profile (SAFE)
+      await updateProfile(result.user, {
+        displayName: name,
+        photoURL: avatarUrl,
+      });
+
+      // 4️⃣ Save to DB (does NOT affect auth)
       await axios.post(`${API_URL}/users`, {
         name,
         email,
@@ -93,78 +98,76 @@ const Registration = () => {
         status: "active",
       });
 
-      // 🔥 SAFE AUTO PHOTOURL SET (DELAYED)
-      setTimeout(async () => {
-        if (auth.currentUser) {
-          await updateProfile(auth.currentUser, {
-            displayName: name,
-            photoURL: avatarUrl,
-          });
-        }
-      }, 1200);
-
       toast.success("Registration successful");
 
-    } catch (error) {
-      toast.error(
-        error?.response?.data?.message || "Registration failed"
-      );
+      // ❌ NO navigate
+      // ❌ NO login call
+      // onAuthStateChanged will handle everything
+
+    } catch (err) {
+      toast.error(err?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
   };
 
+  if (loading) return <LoadingSpinner />;
+
   return (
-    <>
-      {loading && <Spinner />}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
+        <h2 className="text-2xl font-bold text-center mb-6">
+          Register
+        </h2>
 
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
-          <h2 className="text-2xl font-bold text-center mb-8">
+        <form onSubmit={handleRegister} className="space-y-4">
+          <input name="name" placeholder="Name" required className="input" />
+          <input name="email" type="email" placeholder="Email" required className="input" />
+          <input name="avatar" type="file" accept="image/*" className="input" />
+
+          <select name="bloodGroup" required className="input">
+            <option value="">Blood Group</option>
+            {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg =>
+              <option key={bg}>{bg}</option>
+            )}
+          </select>
+
+          <select
+            name="district"
+            required
+            onChange={e => setSelectedDistrictId(+e.target.value)}
+            className="input"
+          >
+            <option value="">District</option>
+            {districts.map(d =>
+              <option key={d.id} value={d.id}>{d.name}</option>
+            )}
+          </select>
+
+          <select name="upazila" required className="input">
+            <option value="">Upazila</option>
+            {upazilas
+              .filter(u => u.district_id === selectedDistrictId)
+              .map(u => <option key={u.id}>{u.name}</option>)
+            }
+          </select>
+
+          <input name="password" type="password" placeholder="Password" required className="input" />
+          <input name="confirm_password" type="password" placeholder="Confirm Password" required className="input" />
+
+          <button className="w-full bg-red-600 text-white py-3 rounded-lg">
             Register
-          </h2>
+          </button>
+        </form>
 
-          <form onSubmit={handleRegister} className="space-y-4">
-            <input name="name" placeholder="Name" required className="w-full px-4 py-3 border rounded-lg" />
-            <input name="email" type="email" placeholder="Email" required className="w-full px-4 py-3 border rounded-lg" />
-            <input name="avatar" type="file" accept="image/*" className="w-full px-4 py-3 border rounded-lg" />
-
-            <select name="bloodGroup" required className="w-full px-4 py-3 border rounded-lg">
-              <option value="">Blood Group</option>
-              {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg => (
-                <option key={bg}>{bg}</option>
-              ))}
-            </select>
-
-            <select name="district" required onChange={(e)=>setSelectedDistrictId(+e.target.value)} className="w-full px-4 py-3 border rounded-lg">
-              <option value="">District</option>
-              {districts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
-
-            <select name="upazila" required className="w-full px-4 py-3 border rounded-lg">
-              <option value="">Upazila</option>
-              {upazilas.filter(u=>u.district_id===selectedDistrictId).map(u=>(
-                <option key={u.id}>{u.name}</option>
-              ))}
-            </select>
-
-            <input name="password" type="password" placeholder="Password" required className="w-full px-4 py-3 border rounded-lg" />
-            <input name="confirm_password" type="password" placeholder="Confirm Password" required className="w-full px-4 py-3 border rounded-lg" />
-
-            <button className="w-full bg-red-600 text-white py-3 rounded-lg">
-              Register
-            </button>
-          </form>
-
-          <p className="mt-6 text-center">
-            Already have an account?{" "}
-            <Link to="/login" className="text-red-600 font-semibold">
-              Login
-            </Link>
-          </p>
-        </div>
+        <p className="mt-4 text-center">
+          Already have an account?{" "}
+          <Link to="/login" className="text-red-600 font-semibold">
+            Login
+          </Link>
+        </p>
       </div>
-    </>
+    </div>
   );
 };
 
