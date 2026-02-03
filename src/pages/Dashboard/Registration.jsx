@@ -6,10 +6,7 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import useAuth from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
-import { updateProfile } from "firebase/auth";
-import { auth } from "../../firebase/firebase.config";
 
-const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Registration = () => {
@@ -24,11 +21,11 @@ const Registration = () => {
     AOS.init({ duration: 800, once: true });
 
     fetch("/District.json")
-      .then(res => res.json())
+      .then((res) => res.json())
       .then(setDistricts);
 
     fetch("/Upzila.json")
-      .then(res => res.json())
+      .then((res) => res.json())
       .then(setUpazilas);
   }, []);
 
@@ -40,10 +37,9 @@ const Registration = () => {
     const email = form.email.value.trim().toLowerCase();
     const password = form.password.value;
     const confirmPassword = form.confirm_password.value;
-    const imageFile = form.avatar.files[0];
     const bloodGroup = form.bloodGroup.value;
     const districtId = Number(form.district.value);
-    const districtName = districts.find(d => d.id === districtId)?.name;
+    const districtName = districts.find((d) => d.id === districtId)?.name;
     const upazila = form.upazila.value;
 
     if (password !== confirmPassword)
@@ -58,39 +54,14 @@ const Registration = () => {
     try {
       setLoading(true);
 
-      // 1️⃣ Upload image
-      let avatarUrl =
-        "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+      // 🔥 ONLY Firebase register → AUTO LOGIN
+      await createUser(email, password);
 
-      if (imageFile && imageBBKey) {
-        const fd = new FormData();
-        fd.append("image", imageFile);
-
-        const imgRes = await axios.post(
-          `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
-          fd
-        );
-
-        avatarUrl = imgRes.data.data.display_url.replace(
-          "i.ibb.co.com",
-          "i.ibb.co"
-        );
-      }
-
-      // 2️⃣ Firebase create user (AUTO LOGIN happens here)
-      const result = await createUser(email, password);
-
-      // 3️⃣ Immediately set Firebase profile (SAFE)
-      await updateProfile(result.user, {
-        displayName: name,
-        photoURL: avatarUrl,
-      });
-
-      // 4️⃣ Save to DB (does NOT affect auth)
+      // 🔥 Save user to DB (no auth impact)
       await axios.post(`${API_URL}/users`, {
         name,
         email,
-        avatar: avatarUrl,
+        avatar: "",          // image feature OFF
         bloodGroup,
         district: districtName,
         upazila,
@@ -100,12 +71,14 @@ const Registration = () => {
 
       toast.success("Registration successful");
 
-      // ❌ NO navigate
-      // ❌ NO login call
-      // onAuthStateChanged will handle everything
+      // ❌ No navigate
+      // ❌ No login call
+      // Firebase onAuthStateChanged will auto-login
 
-    } catch (err) {
-      toast.error(err?.message || "Registration failed");
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Registration failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -114,53 +87,95 @@ const Registration = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full">
-        <h2 className="text-2xl font-bold text-center mb-6">
-          Register
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-white to-red-50 px-4">
+      <div
+        className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8"
+        data-aos="fade-up"
+      >
+        <h2 className="text-3xl font-bold text-center text-red-600 mb-6">
+          Create Account
         </h2>
 
         <form onSubmit={handleRegister} className="space-y-4">
-          <input name="name" placeholder="Name" required className="input" />
-          <input name="email" type="email" placeholder="Email" required className="input" />
-          <input name="avatar" type="file" accept="image/*" className="input" />
+          <input
+            name="name"
+            placeholder="Full Name"
+            required
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-300 outline-none"
+          />
 
-          <select name="bloodGroup" required className="input">
-            <option value="">Blood Group</option>
-            {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg =>
+          <input
+            name="email"
+            type="email"
+            placeholder="Email Address"
+            required
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-300 outline-none"
+          />
+
+          <select
+            name="bloodGroup"
+            required
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-300 outline-none"
+          >
+            <option value="">Select Blood Group</option>
+            {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg => (
               <option key={bg}>{bg}</option>
-            )}
+            ))}
           </select>
 
           <select
             name="district"
             required
-            onChange={e => setSelectedDistrictId(+e.target.value)}
-            className="input"
+            onChange={(e) => {
+              setSelectedDistrictId(Number(e.target.value));
+              e.target.form.upazila.value = "";
+            }}
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-300 outline-none"
           >
-            <option value="">District</option>
-            {districts.map(d =>
+            <option value="">Select District</option>
+            {districts.map((d) => (
               <option key={d.id} value={d.id}>{d.name}</option>
-            )}
+            ))}
           </select>
 
-          <select name="upazila" required className="input">
-            <option value="">Upazila</option>
+          <select
+            name="upazila"
+            required
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-300 outline-none"
+          >
+            <option value="">Select Upazila</option>
             {upazilas
               .filter(u => u.district_id === selectedDistrictId)
-              .map(u => <option key={u.id}>{u.name}</option>)
-            }
+              .map(u => (
+                <option key={u.id}>{u.name}</option>
+              ))}
           </select>
 
-          <input name="password" type="password" placeholder="Password" required className="input" />
-          <input name="confirm_password" type="password" placeholder="Confirm Password" required className="input" />
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            required
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-300 outline-none"
+          />
 
-          <button className="w-full bg-red-600 text-white py-3 rounded-lg">
+          <input
+            name="confirm_password"
+            type="password"
+            placeholder="Confirm Password"
+            required
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-300 outline-none"
+          />
+
+          <button
+            type="submit"
+            className="w-full py-3 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+          >
             Register
           </button>
         </form>
 
-        <p className="mt-4 text-center">
+        <p className="mt-6 text-center text-gray-600">
           Already have an account?{" "}
           <Link to="/login" className="text-red-600 font-semibold">
             Login
@@ -172,3 +187,4 @@ const Registration = () => {
 };
 
 export default Registration;
+
