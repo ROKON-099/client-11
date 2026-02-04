@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 import AOS from "aos";
@@ -11,7 +11,10 @@ const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Registration = () => {
-  const { createUser, updateUserProfile } = useAuth();
+  const { createUser, updateUserProfile, user, loading: authLoading } =
+    useAuth();
+
+  const navigate = useNavigate();
 
   const [districts, setDistricts] = useState([]);
   const [upazilas, setUpazilas] = useState([]);
@@ -21,9 +24,21 @@ const Registration = () => {
   useEffect(() => {
     AOS.init({ duration: 800, once: true });
 
-    fetch("/District.json").then(res => res.json()).then(setDistricts);
-    fetch("/Upzila.json").then(res => res.json()).then(setUpazilas);
+    fetch("/District.json")
+      .then((res) => res.json())
+      .then(setDistricts);
+
+    fetch("/Upzila.json")
+      .then((res) => res.json())
+      .then(setUpazilas);
   }, []);
+
+  // ✅ AUTO REDIRECT IF USER LOGGED IN
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -38,7 +53,7 @@ const Registration = () => {
     const imageFile = form.avatar.files[0];
     const bloodGroup = form.bloodGroup.value;
     const districtId = Number(form.district.value);
-    const districtName = districts.find(d => d.id === districtId)?.name;
+    const districtName = districts.find((d) => d.id === districtId)?.name;
     const upazila = form.upazila.value;
 
     if (password !== confirmPassword)
@@ -47,8 +62,7 @@ const Registration = () => {
     if (password.length < 6)
       return toast.error("Password must be at least 6 characters");
 
-    if (!districtName)
-      return toast.error("Please select a district");
+    if (!districtName) return toast.error("Please select a district");
 
     try {
       setLoading(true);
@@ -73,7 +87,7 @@ const Registration = () => {
       // 🔥 FIREBASE REGISTER (AUTO LOGIN)
       await createUser(email, password);
 
-      // 🔥 UPDATE FIREBASE PROFILE (AVATAR + NAME)
+      // 🔥 UPDATE FIREBASE PROFILE
       await updateUserProfile(name, avatarUrl);
 
       // 🔥 SAVE USER IN DATABASE
@@ -90,6 +104,9 @@ const Registration = () => {
 
       toast.success("Registration successful 🎉");
       form.reset();
+
+      // 🔥 REDIRECT
+      navigate("/", { replace: true });
     } catch (error) {
       toast.error(error?.message || "Registration failed");
     } finally {
@@ -140,9 +157,11 @@ const Registration = () => {
               className="w-full px-4 py-3 border rounded-lg"
             >
               <option value="">Blood Group</option>
-              {["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(bg => (
-                <option key={bg}>{bg}</option>
-              ))}
+              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
+                (bg) => (
+                  <option key={bg}>{bg}</option>
+                )
+              )}
             </select>
 
             <select
@@ -155,7 +174,7 @@ const Registration = () => {
               className="w-full px-4 py-3 border rounded-lg"
             >
               <option value="">District</option>
-              {districts.map(d => (
+              {districts.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name}
                 </option>
@@ -169,8 +188,8 @@ const Registration = () => {
             >
               <option value="">Upazila</option>
               {upazilas
-                .filter(u => u.district_id === selectedDistrictId)
-                .map(u => (
+                .filter((u) => u.district_id === selectedDistrictId)
+                .map((u) => (
                   <option key={u.id}>{u.name}</option>
                 ))}
             </select>
