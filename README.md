@@ -1,16 +1,50 @@
-# React + Vite
+_____________________________________________________Blood Donation Application____________________________________________________
+____________________________________________________________________________________________________________________________________
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Live Links:
+https://client-11-f4tc.vercel.app;
+server side:
+https://blood-donation-server-8ug8.onrender.com
+###
+GitHub Repositories
+## client side:https://github.com/ROKON-099/client-11
+## server side:https://github.com/ROKON-099/server-11
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## React Compiler
+### Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Frontend
 
-## Expanding the ESLint configuration
+React (Vite)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+React Router DOM
+
+Firebase Authentication
+
+Tailwind CSS
+
+Axios
+
+AOS Animation
+
+React Hot Toast
+
+### Backend
+
+Node.js
+
+Express.js
+
+MongoDB
+
+Mongoose
+
+JWT (JSON Web Token)
+
+CORS
+
+Dotenv
+
+
+
