@@ -35,36 +35,23 @@ const AllUsers = () => {
     refetch();
   };
 
-  /* ✅ Use loading component */
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
   return (
-    <div
-      data-aos="fade-up"
-      className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4"
-    >
-      <div
-        data-aos="fade-up"
-        data-aos-delay="100"
-        className="max-w-7xl mx-auto bg-white rounded-xl shadow p-6"
-      >
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4">
+      <div className="max-w-7xl mx-auto bg-white rounded-xl shadow p-6">
         {/* Header */}
-        <div
-          data-aos="fade-right"
-          data-aos-delay="200"
-          className="flex flex-col md:flex-row md:justify-between md:items-center mb-6"
-        >
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
           <h1 className="text-2xl font-bold text-red-600">
             All Users
           </h1>
 
-          {/* Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="mt-3 md:mt-0 border px-4 py-2 rounded-lg"
+            className="mt-3 md:mt-0 border px-4 py-2 rounded-lg w-full md:w-auto"
           >
             <option value="all">All</option>
             <option value="active">Active</option>
@@ -72,8 +59,8 @@ const AllUsers = () => {
           </select>
         </div>
 
-        {/* Table (NO AOS HERE) */}
-        <div className="overflow-x-auto">
+        {/* ===== DESKTOP TABLE ===== */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full border text-sm">
             <thead className="bg-red-100">
               <tr>
@@ -82,7 +69,9 @@ const AllUsers = () => {
                 <th className="border px-3 py-2">Email</th>
                 <th className="border px-3 py-2">Role</th>
                 <th className="border px-3 py-2">Status</th>
-                <th className="border px-3 py-2">Actions</th>
+                <th className="border px-3 py-2 text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
 
@@ -95,17 +84,14 @@ const AllUsers = () => {
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr
-                    key={user._id}
-                    className="hover:bg-red-50"
-                  >
-                    <td className="border px-3 py-2">
+                  <tr key={user._id} className="hover:bg-red-50">
+                    <td className="border px-3 py-2 text-center">
                       <img
                         src={
                           user.avatar ||
                           "https://i.ibb.co/2kRZb5P/avatar.png"
                         }
-                        className="w-10 h-10 rounded-full object-cover mx-auto"
+                        className="w-10 h-10 rounded-full mx-auto object-cover"
                         alt="avatar"
                       />
                     </td>
@@ -114,7 +100,7 @@ const AllUsers = () => {
                       {user.name}
                     </td>
 
-                    <td className="border px-3 py-2">
+                    <td className="border px-3 py-2 break-all">
                       {user.email}
                     </td>
 
@@ -122,7 +108,7 @@ const AllUsers = () => {
                       {user.role}
                     </td>
 
-                    <td className="border px-3 py-2 capitalize">
+                    <td className="border px-3 py-2">
                       <span
                         className={`px-2 py-1 rounded text-xs text-white ${
                           user.status === "active"
@@ -134,8 +120,7 @@ const AllUsers = () => {
                       </span>
                     </td>
 
-                    {/* Actions */}
-                    <td className="border px-3 py-2 text-center">
+                    <td className="border px-3 py-2 text-right">
                       <DropdownMenu>
                         {user.status === "active" ? (
                           <MenuItem
@@ -178,6 +163,103 @@ const AllUsers = () => {
             </tbody>
           </table>
         </div>
+
+        {/* ===== MOBILE CARD VIEW ===== */}
+        <div className="md:hidden space-y-4">
+          {users.length === 0 && (
+            <p className="text-center py-6 text-gray-500">
+              No users found
+            </p>
+          )}
+
+          {users.map((user) => (
+            <div
+              key={user._id}
+              className="border rounded-lg p-4 shadow-sm bg-white"
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={
+                      user.avatar ||
+                      "https://i.ibb.co/2kRZb5P/avatar.png"
+                    }
+                    className="w-12 h-12 rounded-full object-cover"
+                    alt="avatar"
+                  />
+
+                  <div>
+                    <p className="font-semibold">{user.name}</p>
+                    <p className="text-sm break-all">
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+
+                {/* RIGHT aligned 3-dot */}
+                <DropdownMenu />
+              </div>
+
+              <div className="mt-3 text-sm space-y-1">
+                <p>
+                  <span className="font-medium">Role:</span>{" "}
+                  {user.role}
+                </p>
+
+                <p>
+                  <span className="font-medium">Status:</span>{" "}
+                  <span
+                    className={`px-2 py-1 rounded text-xs text-white ${
+                      user.status === "active"
+                        ? "bg-green-600"
+                        : "bg-red-600"
+                    }`}
+                  >
+                    {user.status}
+                  </span>
+                </p>
+              </div>
+
+              <div className="mt-3 flex justify-end">
+                <DropdownMenu>
+                  {user.status === "active" ? (
+                    <MenuItem
+                      label="Block User"
+                      onClick={() =>
+                        updateStatus(user._id, "blocked")
+                      }
+                    />
+                  ) : (
+                    <MenuItem
+                      label="Unblock User"
+                      onClick={() =>
+                        updateStatus(user._id, "active")
+                      }
+                    />
+                  )}
+
+                  {user.role === "donor" && (
+                    <MenuItem
+                      label="Make Volunteer"
+                      onClick={() =>
+                        makeVolunteer(user._id)
+                      }
+                    />
+                  )}
+
+                  {user.role !== "admin" && (
+                    <MenuItem
+                      label="Make Admin"
+                      onClick={() =>
+                        makeAdmin(user._id)
+                      }
+                    />
+                  )}
+                </DropdownMenu>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -191,10 +273,10 @@ const DropdownMenu = ({ children }) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative inline-block">
+    <div className="relative flex justify-end">
       <button
         onClick={() => setOpen(!open)}
-        className="text-xl px-2"
+        className="text-xl px-2 hover:bg-gray-100 rounded"
       >
         ⋮
       </button>
@@ -216,3 +298,4 @@ const MenuItem = ({ label, onClick }) => (
     {label}
   </button>
 );
+

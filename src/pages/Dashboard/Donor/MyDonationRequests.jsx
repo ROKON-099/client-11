@@ -70,7 +70,7 @@ const MyDonationRequests = () => {
       <div className="max-w-7xl mx-auto bg-white rounded-xl shadow p-6">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-3">
           <h1 className="text-2xl font-bold text-red-600">
             My Donation Requests
           </h1>
@@ -81,7 +81,7 @@ const MyDonationRequests = () => {
               setStatus(e.target.value);
               setPage(1);
             }}
-            className="mt-3 md:mt-0 border px-4 py-2 rounded-lg"
+            className="border px-4 py-2 rounded-lg w-full md:w-auto"
           >
             <option value="all">All</option>
             <option value="pending">Pending</option>
@@ -102,7 +102,7 @@ const MyDonationRequests = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-6">
+          <div className="flex flex-wrap justify-center gap-2 mt-6">
             {[...Array(totalPages).keys()].map((i) => (
               <button
                 key={i}
@@ -110,7 +110,7 @@ const MyDonationRequests = () => {
                 className={`px-4 py-2 rounded ${
                   page === i + 1
                     ? "bg-red-600 text-white"
-                    : "bg-gray-200"
+                    : "bg-gray-200 hover:bg-gray-300"
                 }`}
               >
                 {i + 1}
@@ -123,7 +123,7 @@ const MyDonationRequests = () => {
         <div className="flex justify-center mt-8">
           <Link
             to="/dashboard/create-donation-request"
-            className="px-6 py-2 rounded-lg bg-red-600 text-white font-medium"
+            className="w-full md:w-auto text-center px-6 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium"
           >
             {requests.length === 0
               ? "Create Donation Request"

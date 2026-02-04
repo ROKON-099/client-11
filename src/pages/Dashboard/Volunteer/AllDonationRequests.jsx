@@ -51,124 +51,195 @@ const AllDonationRequests = () => {
   }
 
   return (
+  <div
+    data-aos="fade-up"
+    className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4"
+  >
     <div
       data-aos="fade-up"
-      className="min-h-screen bg-gradient-to-br from-red-50 to-white p-4"
+      data-aos-delay="100"
+      className="max-w-7xl mx-auto bg-white rounded-xl shadow p-6"
     >
+      {/* Header */}
       <div
-        data-aos="fade-up"
-        data-aos-delay="100"
-        className="max-w-7xl mx-auto bg-white rounded-xl shadow p-6"
+        data-aos="fade-right"
+        data-aos-delay="200"
+        className="flex flex-col md:flex-row md:justify-between md:items-center mb-6"
       >
-        {/* Header */}
-        <div
-          data-aos="fade-right"
-          data-aos-delay="200"
-          className="flex flex-col md:flex-row md:justify-between md:items-center mb-6"
+        <h1 className="text-2xl font-bold text-red-600">
+          All Blood Donation Requests
+        </h1>
+
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="mt-3 md:mt-0 border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 w-full md:w-auto"
         >
-          <h1 className="text-2xl font-bold text-red-600">
-            All Blood Donation Requests
-          </h1>
+          <option value="all">All</option>
+          <option value="pending">Pending</option>
+          <option value="inprogress">In Progress</option>
+          <option value="done">Done</option>
+          <option value="canceled">Canceled</option>
+        </select>
+      </div>
 
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="mt-3 md:mt-0 border px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400"
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="inprogress">In Progress</option>
-            <option value="done">Done</option>
-            <option value="canceled">Canceled</option>
-          </select>
-        </div>
+      {/* ===== DESKTOP TABLE ===== */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full border rounded-lg overflow-hidden">
+          <thead className="bg-red-100">
+            <tr>
+              <th className="border p-3 text-left">Recipient</th>
+              <th className="border p-3 text-left">Blood Group</th>
+              <th className="border p-3 text-left">Status</th>
+              <th className="border p-3 text-left">Actions</th>
+            </tr>
+          </thead>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full border rounded-lg overflow-hidden">
-            <thead className="bg-red-100">
-              <tr>
-                <th className="border p-3 text-left">Recipient</th>
-                <th className="border p-3 text-left">Blood Group</th>
-                <th className="border p-3 text-left">Status</th>
-                <th className="border p-3 text-left">Actions</th>
-              </tr>
-            </thead>
+          <tbody>
+            {requests.map((req) => (
+              <tr
+                key={req._id}
+                className="hover:bg-gray-50 transition"
+              >
+                <td className="border p-3">
+                  {req.recipientName}
+                </td>
+                <td className="border p-3 font-semibold">
+                  {req.bloodGroup}
+                </td>
+                <td className="border p-3 capitalize">
+                  {req.donationStatus}
+                </td>
 
-            <tbody>
-              {requests.map((req) => (
-                <tr
-                  key={req._id}
-                  className="hover:bg-gray-50 transition"
-                >
-                  <td className="border p-3">
-                    {req.recipientName}
-                  </td>
-                  <td className="border p-3 font-semibold">
-                    {req.bloodGroup}
-                  </td>
-                  <td className="border p-3 capitalize">
-                    {req.donationStatus}
-                  </td>
+                <td className="border p-3 space-x-2">
+                  {req.donationStatus === "pending" && (
+                    <button
+                      onClick={() =>
+                        handleUpdateStatus(
+                          req._id,
+                          "inprogress"
+                        )
+                      }
+                      className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded"
+                    >
+                      In Progress
+                    </button>
+                  )}
 
-                  <td className="border p-3 space-x-2">
-                    {req.donationStatus === "pending" && (
+                  {req.donationStatus === "inprogress" && (
+                    <>
+                      <button
+                        onClick={() =>
+                          handleUpdateStatus(req._id, "done")
+                        }
+                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded"
+                      >
+                        Done
+                      </button>
                       <button
                         onClick={() =>
                           handleUpdateStatus(
                             req._id,
-                            "inprogress"
+                            "canceled"
                           )
                         }
-                        className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded transition"
+                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded"
                       >
-                        In Progress
+                        Cancel
                       </button>
-                    )}
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
 
-                    {req.donationStatus === "inprogress" && (
-                      <>
-                        <button
-                          onClick={() =>
-                            handleUpdateStatus(req._id, "done")
-                          }
-                          className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded transition"
-                        >
-                          Done
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleUpdateStatus(
-                              req._id,
-                              "canceled"
-                            )
-                          }
-                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
+            {requests.length === 0 && (
+              <tr>
+                <td
+                  colSpan="4"
+                  className="text-center py-6 text-gray-500"
+                >
+                  No donation requests found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-              {requests.length === 0 && (
-                <tr>
-                  <td
-                    colSpan="4"
-                    className="text-center py-6 text-gray-500"
-                  >
-                    No donation requests found
-                  </td>
-                </tr>
+      {/* ===== MOBILE CARD VIEW ===== */}
+      <div className="md:hidden space-y-4">
+        {requests.map((req) => (
+          <div
+            key={req._id}
+            className="border rounded-lg p-4 shadow-sm bg-white"
+          >
+            <p className="font-semibold text-lg">
+              {req.recipientName}
+            </p>
+
+            <p className="text-sm mt-1">
+              <span className="font-medium">Blood Group:</span>{" "}
+              {req.bloodGroup}
+            </p>
+
+            <p className="text-sm mt-1 capitalize">
+              <span className="font-medium">Status:</span>{" "}
+              {req.donationStatus}
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {req.donationStatus === "pending" && (
+                <button
+                  onClick={() =>
+                    handleUpdateStatus(
+                      req._id,
+                      "inprogress"
+                    )
+                  }
+                  className="w-full px-3 py-2 bg-blue-500 text-white rounded"
+                >
+                  In Progress
+                </button>
               )}
-            </tbody>
-          </table>
-        </div>
+
+              {req.donationStatus === "inprogress" && (
+                <>
+                  <button
+                    onClick={() =>
+                      handleUpdateStatus(req._id, "done")
+                    }
+                    className="flex-1 px-3 py-2 bg-green-600 text-white rounded"
+                  >
+                    Done
+                  </button>
+                  <button
+                    onClick={() =>
+                      handleUpdateStatus(
+                        req._id,
+                        "canceled"
+                      )
+                    }
+                    className="flex-1 px-3 py-2 bg-red-600 text-white rounded"
+                  >
+                    Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {requests.length === 0 && (
+          <p className="text-center text-gray-500">
+            No donation requests found
+          </p>
+        )}
       </div>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default AllDonationRequests;

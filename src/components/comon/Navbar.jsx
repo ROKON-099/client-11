@@ -110,53 +110,69 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Menu */}
-      {open && (
-        <div className="md:hidden bg-white border-t px-4 py-4 space-y-3">
-          <NavLink
-            to="/donation-requests"
-            className={navLinkClass}
-            onClick={() => setOpen(false)}
-          >
-            Donation Requests
-          </NavLink>
+      {/* Mobile Menu */}
+      {/* Mobile Menu */}
+{open && (
+  <div className="md:hidden bg-white border-t px-4 py-5 space-y-3">
+    <NavLink
+      to="/donation-requests"
+      className={({ isActive }) =>
+        `block w-full text-center px-4 py-3 rounded-md font-medium transition ${
+          isActive
+            ? "bg-red-600 text-white"
+            : "bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600"
+        }`
+      }
+      onClick={() => setOpen(false)}
+    >
+      Donation Requests
+    </NavLink>
 
-          {user && (
-            <NavLink
-              to="/dashboard/funding"
-              className={navLinkClass}
-              onClick={() => setOpen(false)}
-            >
-              Funding
-            </NavLink>
-          )}
+    {user && (
+      <NavLink
+        to="/dashboard/funding"
+        className={({ isActive }) =>
+          `block w-full text-center px-4 py-3 rounded-md font-medium transition ${
+            isActive
+              ? "bg-red-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600"
+          }`
+        }
+        onClick={() => setOpen(false)}
+      >
+        Funding
+      </NavLink>
+    )}
 
-          {!user ? (
-            <NavLink
-              to="/login"
-              className="block px-4 py-2 bg-red-600 text-white rounded text-center"
-              onClick={() => setOpen(false)}
-            >
-              Login
-            </NavLink>
-          ) : (
-            <>
-              <NavLink
-                to="/dashboard"
-                className={navLinkClass}
-                onClick={() => setOpen(false)}
-              >
-                Dashboard
-              </NavLink>
-              <button
-                onClick={handleLogout}
-                className="block text-left text-red-600"
-              >
-                Logout
-              </button>
-            </>
-          )}
-        </div>
-      )}
+    {!user ? (
+      <NavLink
+        to="/login"
+        className="block w-full text-center px-4 py-3 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
+        onClick={() => setOpen(false)}
+      >
+        Login
+      </NavLink>
+    ) : (
+      <>
+        <NavLink
+          to="/dashboard"
+          className="block w-full text-center px-4 py-3 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+          onClick={() => setOpen(false)}
+        >
+          Dashboard
+        </NavLink>
+
+        <button
+          onClick={handleLogout}
+          className="block w-full text-center px-4 py-3 rounded-md bg-red-50 text-red-600 font-semibold hover:bg-red-100 transition"
+        >
+          Logout
+        </button>
+      </>
+    )}
+  </div>
+)}
+
     </nav>
   );
 };
