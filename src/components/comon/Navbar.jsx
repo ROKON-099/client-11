@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, PanelLeft } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
 import axiosSecure from "../../hooks/axiosSecure";
 import logo from "../../assets/Logo.png";
@@ -24,7 +24,7 @@ const Navbar = () => {
     } else {
       setDbUser(null);
     }
-  }, [user]);
+  }, [user?.email]);
 
   const handleLogout = async () => {
     await logOut();
@@ -70,15 +70,11 @@ const Navbar = () => {
               </NavLink>
             ) : (
               <div className="relative group">
-                <img
-                  src={
-                    user?.photoURL ||
-                    dbUser?.avatar ||
-                    DEFAULT_AVATAR
-                  }
-                  alt="user"
-                  className="w-10 h-10 rounded-full cursor-pointer border object-cover"
-                />
+
+                {/* Dashboard Icon Box (Black) */}
+                <div className="p-2 rounded-lg  bg-gray-50 hover:bg-gray-100 cursor-pointer">
+                  <PanelLeft className="w-6 h-6 text-black" />
+                </div>
 
                 {/* Dropdown */}
                 <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all">
@@ -95,6 +91,7 @@ const Navbar = () => {
                     Logout
                   </button>
                 </div>
+
               </div>
             )}
           </div>
@@ -106,72 +103,73 @@ const Navbar = () => {
           >
             {open ? <X size={28} /> : <Menu size={28} />}
           </button>
+
         </div>
       </div>
 
       {/* Mobile Menu */}
-      {/* Mobile Menu */}
-      {/* Mobile Menu */}
-{open && (
-  <div className="md:hidden bg-white border-t px-4 py-5 space-y-3">
-    <NavLink
-      to="/donation-requests"
-      className={({ isActive }) =>
-        `block w-full text-center px-4 py-3 rounded-md font-medium transition ${
-          isActive
-            ? "bg-red-600 text-white"
-            : "bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600"
-        }`
-      }
-      onClick={() => setOpen(false)}
-    >
-      Donation Requests
-    </NavLink>
+      {open && (
+        <div className="md:hidden bg-white border-t px-4 py-5 space-y-3">
 
-    {user && (
-      <NavLink
-        to="/dashboard/funding"
-        className={({ isActive }) =>
-          `block w-full text-center px-4 py-3 rounded-md font-medium transition ${
-            isActive
-              ? "bg-red-600 text-white"
-              : "bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600"
-          }`
-        }
-        onClick={() => setOpen(false)}
-      >
-        Funding
-      </NavLink>
-    )}
+          <NavLink
+            to="/donation-requests"
+            className={({ isActive }) =>
+              `block w-full text-center px-4 py-3 rounded-md font-medium transition ${
+                isActive
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600"
+              }`
+            }
+            onClick={() => setOpen(false)}
+          >
+            Donation Requests
+          </NavLink>
 
-    {!user ? (
-      <NavLink
-        to="/login"
-        className="block w-full text-center px-4 py-3 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
-        onClick={() => setOpen(false)}
-      >
-        Login
-      </NavLink>
-    ) : (
-      <>
-        <NavLink
-          to="/dashboard"
-          className="block w-full text-center px-4 py-3 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-          onClick={() => setOpen(false)}
-        >
-          Dashboard
-        </NavLink>
+          {user && (
+            <NavLink
+              to="/dashboard/funding"
+              className={({ isActive }) =>
+                `block w-full text-center px-4 py-3 rounded-md font-medium transition ${
+                  isActive
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                }`
+              }
+              onClick={() => setOpen(false)}
+            >
+              Funding
+            </NavLink>
+          )}
 
-        <button
-          onClick={handleLogout}
-          className="block w-full text-center px-4 py-3 rounded-md bg-red-50 text-red-600 font-semibold hover:bg-red-100 transition"
-        >
-          Logout
-        </button>
-      </>
-    )}
-  </div>
-)}
+          {!user ? (
+            <NavLink
+              to="/login"
+              className="block w-full text-center px-4 py-3 bg-red-600 text-white rounded-md font-semibold hover:bg-red-700 transition"
+              onClick={() => setOpen(false)}
+            >
+              Login
+            </NavLink>
+          ) : (
+            <>
+              <NavLink
+                to="/dashboard"
+                className="block w-full text-center px-4 py-3 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                onClick={() => setOpen(false)}
+              >
+                Dashboard
+              </NavLink>
+
+              <button
+                onClick={handleLogout}
+                className="block w-full text-center px-4 py-3 rounded-md bg-red-50 text-red-600 font-semibold hover:bg-red-100 transition"
+              >
+                Logout
+              </button>
+            </>
+          )}
+
+        </div>
+      )}
 
     </nav>
   );

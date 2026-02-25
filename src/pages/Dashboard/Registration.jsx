@@ -8,7 +8,10 @@ import useAuth from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
 
 const imageBBKey = import.meta.env.VITE_IMGBB_API_KEY;
-const API_URL = import.meta.env.VITE_API_URL;
+
+/* ✅ FIX: fallback added */
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const Registration = () => {
   const { createUser, updateUserProfile, user, loading: authLoading } =
@@ -33,12 +36,11 @@ const Registration = () => {
       .then(setUpazilas);
   }, []);
 
-  // ✅ AUTO REDIRECT IF USER LOGGED IN
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && !loading) {
       navigate("/", { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, loading]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -62,35 +64,33 @@ const Registration = () => {
     if (password.length < 6)
       return toast.error("Password must be at least 6 characters");
 
-    if (!districtName) return toast.error("Please select a district");
+    if (!districtName)
+      return toast.error("Please select a district");
 
     try {
       setLoading(true);
 
-      // Default avatar
+      await createUser(email, password);
+
       let avatarUrl =
         "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-      // Upload avatar (optional)
       if (imageFile && imageBBKey) {
-        const imageFormData = new FormData();
-        imageFormData.append("image", imageFile);
+        const formData = new FormData();
+        formData.append("image", imageFile);
 
         const imgRes = await axios.post(
           `https://api.imgbb.com/1/upload?key=${imageBBKey}`,
-          imageFormData
+          formData
         );
 
-        avatarUrl = imgRes?.data?.data?.display_url || avatarUrl;
+        avatarUrl =
+          imgRes?.data?.data?.display_url || avatarUrl;
       }
 
-      // 🔥 FIREBASE REGISTER (AUTO LOGIN)
-      await createUser(email, password);
-
-      // 🔥 UPDATE FIREBASE PROFILE
       await updateUserProfile(name, avatarUrl);
 
-      // 🔥 SAVE USER IN DATABASE
+      /* ✅ This now always works */
       await axios.post(`${API_URL}/users`, {
         name,
         email,
@@ -102,15 +102,29 @@ const Registration = () => {
         status: "active",
       });
 
+      const jwtRes = await axios.post(`${API_URL}/jwt`, {
+        email,
+      });
+
+      localStorage.setItem("token", jwtRes.data.token);
+
       toast.success("Registration successful 🎉");
+
       form.reset();
 
-      // 🔥 REDIRECT
       navigate("/", { replace: true });
+
     } catch (error) {
-      toast.error(error?.message || "Registration failed");
+
+      toast.error(
+        error?.response?.data?.message ||
+        error?.message
+      );
+
     } finally {
+
       setLoading(false);
+
     }
   };
 
@@ -119,15 +133,15 @@ const Registration = () => {
       {loading && <LoadingSpinner />}
 
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div
-          className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full"
-          data-aos="fade-up"
-        >
+
+        <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full">
+
           <h2 className="text-2xl font-bold text-center mb-6">
             Create Account
           </h2>
 
           <form onSubmit={handleRegister} className="space-y-4">
+
             <input
               name="name"
               type="text"
@@ -157,28 +171,36 @@ const Registration = () => {
               className="w-full px-4 py-3 border rounded-lg"
             >
               <option value="">Blood Group</option>
-              {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(
-                (bg) => (
-                  <option key={bg}>{bg}</option>
-                )
-              )}
+
+              {[
+                "A+","A-","B+","B-",
+                "AB+","AB-","O+","O-",
+              ].map((bg) => (
+                <option key={bg}>{bg}</option>
+              ))}
+
             </select>
 
             <select
               name="district"
               required
               onChange={(e) => {
-                setSelectedDistrictId(Number(e.target.value));
+                setSelectedDistrictId(
+                  Number(e.target.value)
+                );
                 e.target.form.upazila.value = "";
               }}
               className="w-full px-4 py-3 border rounded-lg"
             >
+
               <option value="">District</option>
+
               {districts.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name}
                 </option>
               ))}
+
             </select>
 
             <select
@@ -186,12 +208,20 @@ const Registration = () => {
               required
               className="w-full px-4 py-3 border rounded-lg"
             >
+
               <option value="">Upazila</option>
+
               {upazilas
-                .filter((u) => u.district_id === selectedDistrictId)
+                .filter(
+                  (u) =>
+                    u.district_id === selectedDistrictId
+                )
                 .map((u) => (
-                  <option key={u.id}>{u.name}</option>
+                  <option key={u.id}>
+                    {u.name}
+                  </option>
                 ))}
+
             </select>
 
             <input
@@ -213,19 +243,30 @@ const Registration = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-red-600 text-white py-3 rounded-lg hover:bg-red-700 transition"
+              className="w-full bg-red-600 text-white py-3 rounded-lg"
             >
-              {loading ? "Registering..." : "Register"}
+              {loading
+                ? "Registering..."
+                : "Register"}
             </button>
+
           </form>
 
           <p className="mt-6 text-center text-sm">
+
             Already have an account?{" "}
-            <Link to="/login" className="text-red-600 font-semibold">
+
+            <Link
+              to="/login"
+              className="text-red-600 font-semibold"
+            >
               Login
             </Link>
+
           </p>
+
         </div>
+
       </div>
     </>
   );

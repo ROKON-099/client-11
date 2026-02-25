@@ -5,25 +5,39 @@ import axiosSecure from "../../hooks/axiosSecure";
 import LoadingSpinner from "../comon/LoadingSpinner";
 
 const Sidebar = () => {
+
   const { user, loading } = useAuth();
+
   const navigate = useNavigate();
 
   const { data: dbUser, isLoading } = useQuery({
+
     queryKey: ["userRole", user?.email],
+
     enabled: !loading && !!user?.email,
+
     queryFn: async () => {
-      const res = await axiosSecure.get(`/users/${user.email}`);
+
+      const res = await axiosSecure.get(
+        `/users/${user?.email?.toLowerCase()}`
+      );
+
       return res.data;
+
     },
+
   });
 
   if (loading || isLoading) {
+
     return <LoadingSpinner />;
+
   }
 
-  const role = dbUser?.role;
+  const role = dbUser?.role || "donor";
 
   return (
+
     <aside
       className="
         w-64 min-h-screen
@@ -32,15 +46,20 @@ const Sidebar = () => {
         flex flex-col
       "
     >
+
       {/* Brand */}
+
       <div className="px-6 py-6 border-b space-y-3">
+
         <h1 className="text-2xl font-extrabold bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">
+
           Blood-Donation
+
         </h1>
 
-        {/* Back to Home */}
         <button
           onClick={() => navigate("/")}
+
           className="
             w-full
             text-left
@@ -52,85 +71,127 @@ const Sidebar = () => {
             transition
           "
         >
+
           ← Back to Home
+
         </button>
+
       </div>
 
-      {/* User Info */}
-      <div className="flex items-center gap-3 px-6 py-5">
-        <img
-          src={user?.photoURL || "https://i.ibb.co/2kRZb5P/avatar.png"}
-          alt="avatar"
-          className="w-12 h-12 rounded-full object-cover border-2 border-red-200"
-        />
-        <div>
-          <p className="text-sm font-semibold text-gray-800">
-            {user?.displayName || "User"}
-          </p>
-          <p className="text-xs text-gray-500 truncate w-36">
-            {user?.email}
-          </p>
-        </div>
-      </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 mt-4 space-y-2">
-        {/* Common */}
+
+      <nav className="flex-1 px-4 mt-6 space-y-2">
+
+
         <NavItem to="/dashboard" label="Dashboard" end />
 
 
-       {/* Donor Only */}
-{role === "donor" && (
-  <>
-    <NavItem to="/dashboard/profile" label="My Profile" />
-    <NavItem
-      to="/dashboard/my-donation-requests"
-      label="My Donation Requests"
-    />
-    <NavItem
-      to="/dashboard/create-donation-request"
-      label="Create Donation Request"
-    />
-    <NavItem to="/dashboard/funding" label="Funding" /> {/* ✅ ADDED */}
-  </>
-)}
+        {/* ✅ Profile for ALL USERS */}
+
+        <NavItem
+          to="/dashboard/profile"
+          label="My Profile"
+        />
 
 
-        {/* Admin */}
-        {role === "admin" && (
+        {/* DONOR */}
+
+        {role === "donor" && (
+
           <>
-            <NavItem to="/dashboard/all-users" label="All Users" />
+
+            <NavItem
+              to="/dashboard/my-donation-requests"
+              label="My Donation Requests"
+            />
+
+            <NavItem
+              to="/dashboard/create-donation-request"
+              label="Create Donation Request"
+            />
+
+            <NavItem
+              to="/dashboard/funding"
+              label="Funding"
+            />
+
+          </>
+
+        )}
+
+
+        {/* ADMIN */}
+
+        {role === "admin" && (
+
+          <>
+
+            <NavItem
+              to="/dashboard/all-users"
+              label="All Users"
+            />
+
+            {/* ✅ FIXED ROUTE */}
+
             <NavItem
               to="/dashboard/all-blood-donation-request"
               label="All Donation Requests"
             />
-            <NavItem to="/dashboard/funding" label="Funding" />
+
+            <NavItem
+              to="/dashboard/funding"
+              label="Funding"
+            />
+
           </>
+
         )}
 
-        {/* Volunteer */}
-        {/* Volunteer */}
+
+        {/* VOLUNTEER */}
+
         {role === "volunteer" && (
+
           <>
+
+            {/* ✅ FIXED ROUTE */}
+
             <NavItem
-              to="/dashboard/all-blood-donation-request-volunteer"
+              to="/dashboard/all-blood-donation-request"
               label="All Donation Requests"
             />
-            {/* ✅ ADDED */}
-            <NavItem to="/dashboard/funding" label="Funding" />
+
+            <NavItem
+              to="/dashboard/funding"
+              label="Funding"
+            />
+
           </>
+
         )}
+
+
       </nav>
+
     </aside>
+
   );
+
 };
 
 export default Sidebar;
 
+
 /* -------- Menu Item -------- */
-const NavItem = ({ to, label }) => (
+
+
+const NavItem = ({ to, label, end }) => (
+
   <NavLink
     to={to}
+    end={end}
+
     className={({ isActive }) =>
       `group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 ${
         isActive
@@ -138,9 +199,15 @@ const NavItem = ({ to, label }) => (
           : "text-gray-700 hover:bg-red-50 hover:text-red-600"
       }`
     }
+
   >
+
     <span className="group-hover:translate-x-1 transition-transform">
+
       {label}
+
     </span>
+
   </NavLink>
-);  
+
+);

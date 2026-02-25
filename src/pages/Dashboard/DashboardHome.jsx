@@ -4,48 +4,104 @@ import axiosSecure from "../../hooks/axiosSecure";
 import LoadingSpinner from "../../components/comon/LoadingSpinner";
 
 /* ROLE HOMES */
+
 import AdminHome from "./Admin/AdminHome";
 import VolunteerHome from "./Volunteer/VolunteerHome";
 import DonorHome from "./Donor/DonorHome";
 
+
 const DashboardHome = () => {
+
   const { user, loading } = useAuth();
 
-  const { data: dbUser, isLoading, isError } = useQuery({
+
+  const {
+
+    data: dbUser,
+
+    isLoading,
+
+    isError,
+
+  } = useQuery({
+
     queryKey: ["dashboard-role", user?.email],
+
     enabled: !loading && !!user?.email,
+
     queryFn: async () => {
-      const res = await axiosSecure.get(`/users/${user.email}`);
+
+      const res = await axiosSecure.get(
+        `/users/${user?.email}`
+      );
+
       return res.data;
+
     },
+
   });
 
-  // ⏳ Wait for auth + role
+
+
+  /* WAIT */
+
   if (loading || isLoading) {
+
     return <LoadingSpinner />;
+
   }
 
-  // ❌ DO NOT redirect logged-in user
-  if (isError || !dbUser?.role) {
+
+
+  /* ERROR */
+
+  if (isError) {
+
     return (
+
       <p className="text-center mt-10 text-red-600">
+
         Failed to load dashboard
+
       </p>
+
     );
+
   }
 
-  // 👑 ADMIN
-  if (dbUser.role === "admin") {
+
+
+  /* DEFAULT ROLE */
+
+  const role = dbUser?.role || "donor";
+
+
+
+  /* ADMIN */
+
+  if (role === "admin") {
+
     return <AdminHome />;
+
   }
 
-  // 🤝 VOLUNTEER
-  if (dbUser.role === "volunteer") {
+
+
+  /* VOLUNTEER */
+
+  if (role === "volunteer") {
+
     return <VolunteerHome />;
+
   }
 
-  // 🩸 DONOR
+
+
+  /* DONOR */
+
   return <DonorHome />;
+
 };
+
 
 export default DashboardHome;
